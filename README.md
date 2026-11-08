@@ -1,4 +1,4 @@
-# Simple Waypoints Manager 1.4.4 — Neon Interface Redesign
+# Simple Waypoints Manager 1.4.5 — Reference UI Layout
 
 A client-side Fabric waypoint manager for Minecraft 26.3 with a redesigned dark interface, neon-green accents, a waypoint-card dashboard, a waypoint editor with color presets and Chroma mode, a surface-map preview, and settings.
 
@@ -98,3 +98,14 @@ Added the missing `drawPinGlyph` helper to `WaypointSettingsScreen`, fixing the 
 - Dashboard cards now expand to use the available width when only one or two waypoints are visible.
 - Added a persistent **Smooth UI Edges** toggle under Settings → Appearance; enabled mode uses larger rounded corners throughout the custom screens.
 - Standardized rounded button and panel styling across dashboard, editor, map, settings, and about screens.
+
+
+## Version 1.4.5 reference UI layout
+
+- Reworked the dashboard into a compact three-column, two-row waypoint card grid, with landscape-style scene thumbnails, compact coordinates, dimension chips, search, dimension filters, and Import / Export controls.
+- Rebuilt the waypoint editor around the supplied reference: a left-side details panel with coordinate fields, dimension selector, selectable marker symbols, nine preset colors, HSV picker, HEX input, block-color eyedropper, and Chroma button; the right side contains the scene preview and beacon / label / match-color switches.
+- Reorganized Settings into a compact two-by-two set of General, Map Settings, Appearance, and Data panels. The smooth-edge setting remains persistent.
+- Added map zoom controls, a contour-layer toggle, and compass artwork to the schematic surface map. These controls change the map preview; this is not a live satellite/tile map or a 3D world screenshot.
+- Added antialiased sans-serif text atlases generated at runtime from Java's logical Dialog font (no font file is bundled), reduced title sizing, and updated the lime active-navigation pill and sidebar location-pin mark.
+- New waypoint marker choices are stored in the existing backwards-compatible `markerText` field.
+- Minecraft target: 26.3; Java toolchain: 25; Fabric Loader: 0.19.5; Fabric API: 0.163.0+26.3; Fabric Loom: 1.17.21.

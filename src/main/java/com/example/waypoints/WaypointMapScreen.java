@@ -15,10 +15,11 @@ public final class WaypointMapScreen extends Screen {
     private static final int EDGE = 0xFF29312B;
     private static final int TEXT = 0xFFF2F5F5;
     private static final int MUTED = 0xFFA3ABB0;
-    private static final int ACCENT = 0xFFB7F36B;
     private static final int RAIL = 176;
     private List<Waypoint> waypoints = List.of();
     private int mapX, mapY, mapW, mapH;
+    private int zoom = 100;
+    private boolean showContours = true;
 
     public WaypointMapScreen() { super(Component.literal("Waypoint Map")); }
 
@@ -32,12 +33,12 @@ public final class WaypointMapScreen extends Screen {
         drawSidebar(g, mx, my);
         int x = RAIL + 24;
         WaypointUiText.drawTitle(g, font, "Surface Map", x, 28, TEXT);
-        WaypointUiText.draw(g, font, "Explore your saved locations", x, 56, MUTED, false);
         mapX = x;
-        mapY = 94;
+        mapY = 60;
         mapW = Math.max(280, width - mapX - 26);
-        mapH = Math.max(190, height - mapY - 48);
+        mapH = Math.max(190, height - mapY - 14);
         drawMap(g);
+        drawMapTools(g, mx, my);
         super.extractRenderState(g, mx, my, delta);
     }
 
@@ -46,11 +47,20 @@ public final class WaypointMapScreen extends Screen {
         rounded(g, mapX, top, mapX + mapW, bottom, 0xFF13251B, 11);
         border(g, mapX, top, mapX + mapW, bottom, EDGE);
         // A stylized overhead biome surface, built from broad terrain regions and contour paths.
-        for (int band = 0; band < 9; band++) {
-            int bx = mapX + 1 + band * (mapW - 2) / 9;
-            int bw = Math.max(1, (mapW - 2) / 9);
-            int tint = (band % 3 == 0) ? 0xFF244B35 : (band % 3 == 1) ? 0xFF28563A : 0xFF20442F;
-            g.fill(bx, top + 1, Math.min(mapX + mapW - 1, bx + bw), bottom - 1, tint);
+        g.fill(mapX + 1, top + 1, mapX + mapW - 1, bottom - 1, 0xFF245037);
+        // Varied forest and meadow patches give the preview a satellite-map feel.
+        for (int i = 0; i < 190; i++) {
+            int px = mapX + 5 + Math.abs((i * 977 + 31) % Math.max(1, mapW - 14));
+            int py = top + 5 + Math.abs((i * 613 + 17) % Math.max(1, mapH - 14));
+            int size = 3 + (i % 5) * 2;
+            int c = switch (i % 5) { case 0 -> 0xFF326B43; case 1 -> 0xFF2B5D3B; case 2 -> 0xFF407947; case 3 -> 0xFF537D4E; default -> 0xFF294B36; };
+            g.fill(px, py, Math.min(mapX + mapW - 2, px + size), Math.min(bottom - 2, py + Math.max(2, size / 2)), c);
+        }
+        // Snowy highlands in the north-east corner, plus pale rock outcrops.
+        for (int i = 0; i < 38; i++) {
+            int px = mapX + mapW * 3 / 4 + Math.abs((i * 37 + 5) % Math.max(1, mapW / 4 - 8));
+            int py = top + 8 + Math.abs((i * 53 + 7) % Math.max(1, mapH / 3));
+            g.fill(px, py, Math.min(mapX + mapW - 3, px + 4 + i % 6), Math.min(top + mapH / 2, py + 3 + i % 5), i % 3 == 0 ? 0xFFE1E7DC : 0xFF9DA99B);
         }
         int seed = 31415;
         for (int i = 0; i < 22; i++) {
@@ -66,11 +76,13 @@ public final class WaypointMapScreen extends Screen {
             g.fill(mapX + 10 + step, py, mapX + 11 + step, py + 5, 0xFF245C7D);
             if (step % 9 == 0) g.fill(mapX + 10 + step, py + 5, mapX + 15 + step, py + 6, 0xFF347A9A);
         }
-        for (int layer = -4; layer <= 4; layer++) {
-            for (int px = mapX + 4; px < mapX + mapW - 4; px++) {
-                double t = (px - mapX) / (double)Math.max(1, mapW);
-                int py = (int)(top + mapH * .5 + layer * mapH * .085 + Math.sin(t * Math.PI * 2 + layer * .5) * mapH * .07);
-                if (py > top + 4 && py < bottom - 4) g.fill(px, py, px + 1, py + 1, 0x554F8D5B);
+        if (showContours) {
+            for (int layer = -4; layer <= 4; layer++) {
+                for (int px = mapX + 4; px < mapX + mapW - 4; px++) {
+                    double t = (px - mapX) / (double)Math.max(1, mapW);
+                    int py = (int)(top + mapH * .5 + layer * mapH * .085 + Math.sin(t * Math.PI * 2 + layer * .5) * mapH * .07);
+                    if (py > top + 4 && py < bottom - 4) g.fill(px, py, px + 1, py + 1, 0x554F8D5B);
+                }
             }
         }
 
@@ -81,8 +93,13 @@ public final class WaypointMapScreen extends Screen {
             int maxZ = waypoints.stream().mapToInt(Waypoint::z).max().orElse(0);
             int rangeX = Math.max(1, maxX - minX), rangeZ = Math.max(1, maxZ - minZ);
             for (Waypoint w : waypoints) {
-                int px = mapX + 36 + (int)((w.x() - minX) * (mapW - 72.0) / rangeX);
-                int py = top + 36 + (int)((w.z() - minZ) * (mapH - 72.0) / rangeZ);
+                double factor = zoom / 100.0;
+                int baseX = mapX + 36 + (int)((w.x() - minX) * (mapW - 72.0) / rangeX);
+                int baseY = top + 36 + (int)((w.z() - minZ) * (mapH - 72.0) / rangeZ);
+                int px = mapX + mapW / 2 + (int)((baseX - (mapX + mapW / 2)) * factor);
+                int py = top + mapH / 2 + (int)((baseY - (top + mapH / 2)) * factor);
+                px = Math.max(mapX + 24, Math.min(mapX + mapW - 24, px));
+                py = Math.max(top + 24, Math.min(bottom - 24, py));
                 int color = 0xFF000000 | WaypointsMod.resolveColor(w);
                 g.fill(px - 2, py + 9, px + 3, py + 17, 0x99000000);
                 rounded(g, px - 13, py - 13, px + 14, py + 14, 0xFF0D160F, 12);
@@ -99,9 +116,9 @@ public final class WaypointMapScreen extends Screen {
         // Legend panel.
         int legendW = Math.min(240, Math.max(170, mapW / 4));
         int count = Math.min(7, waypoints.size());
-        int lx = mapX + 14, ly = top + 14;
+        int lx = mapX + 14, ly = bottom - (34 + count * 22) - 14;
         rounded(g, lx, ly, lx + legendW, ly + 34 + count * 22, 0xE8090C0A, 8);
-        WaypointUiText.draw(g, font, "WAYPOINTS  ·  " + waypoints.size(), lx + 11, ly + 10, ACCENT, true);
+        WaypointUiText.draw(g, font, "WAYPOINTS  ·  " + waypoints.size(), lx + 11, ly + 10, WaypointsMod.uiAccentColor, true);
         for (int i = 0; i < count; i++) {
             Waypoint w = waypoints.get(i);
             int yy = ly + 35 + i * 22;
@@ -113,11 +130,36 @@ public final class WaypointMapScreen extends Screen {
                 mapX + 12, bottom - 20, 0xFFB7C3B7, false);
     }
 
+    private void drawMapTools(GuiGraphicsExtractor g, int mx, int my) {
+        int x = mapX + 12, y = mapY + 12;
+        mapTool(g, x, y, 28, 28, "+", zoom < 200, mx, my);
+        mapTool(g, x, y + 35, 28, 28, "−", zoom > 40, mx, my);
+        mapTool(g, x, y + 70, 28, 28, "≋", showContours, mx, my);
+        int cx = mapX + mapW - 43, cy = mapY + 43;
+        rounded(g, cx - 28, cy - 28, cx + 28, cy + 28, 0xE90C1010, 28);
+        border(g, cx - 28, cy - 28, cx + 28, cy + 28, 0xFFBBC5C2);
+        WaypointUiText.draw(g, font, "N", cx - 3, cy - 23, TEXT, true);
+        WaypointUiText.draw(g, font, "S", cx - 3, cy + 13, MUTED, false);
+        WaypointUiText.draw(g, font, "W", cx - 22, cy - 4, MUTED, false);
+        WaypointUiText.draw(g, font, "E", cx + 15, cy - 4, MUTED, false);
+        g.fill(cx - 2, cy - 18, cx + 3, cy + 18, 0xFFEEF2EE);
+        g.fill(cx - 15, cy - 2, cx + 16, cy + 3, 0xFFEEF2EE);
+        g.fill(cx - 2, cy - 18, cx + 3, cy - 2, WaypointsMod.uiAccentColor);
+    }
+
+    private void mapTool(GuiGraphicsExtractor g, int x, int y, int w, int h, String label,
+                         boolean enabled, int mx, int my) {
+        boolean hover = mx >= x && mx < x + w && my >= y && my < y + h;
+        rounded(g, x, y, x + w, y + h, hover ? 0xFF26312A : 0xE90C1010, 6);
+        border(g, x, y, x + w, y + h, enabled ? 0xFF637E5C : EDGE);
+        WaypointUiText.draw(g, font, label, x + (w - WaypointUiText.width(font, label)) / 2, y + 8,
+                enabled ? WaypointsMod.uiAccentColor : MUTED, true);
+    }
+
     private void drawSidebar(GuiGraphicsExtractor g, int mx, int my) {
         g.fill(0, 0, RAIL, height, 0xFF101113);
         g.fill(RAIL - 1, 0, RAIL, height, EDGE);
-        rounded(g, 18, 20, 53, 55, ACCENT, 10);
-        WaypointUiText.draw(g, font, "●", 28, 28, 0xFF101410, true);
+        drawBrandMark(g, 18, 20);
         WaypointUiText.draw(g, font, "Simple", 69, 22, TEXT, true);
         WaypointUiText.draw(g, font, "Waypoints", 69, 36, TEXT, true);
         nav(g, mx, my, 10, 112, "Waypoints", false);
@@ -126,19 +168,27 @@ public final class WaypointMapScreen extends Screen {
         nav(g, mx, my, 10, 247, "About", false);
         g.fill(14, height - 96, 42, height - 77, 0xFF79502E);
         g.fill(14, height - 99, 42, height - 92, 0xFF4F9C35);
-        WaypointUiText.draw(g, font, "v1.4.4", 54, height - 91, ACCENT, true);
+        WaypointUiText.draw(g, font, "v1.4.5", 54, height - 91, WaypointsMod.uiAccentColor, true);
+    }
+
+    private void drawBrandMark(GuiGraphicsExtractor g, int x, int y) {
+        rounded(g, x + 7, y, x + 28, y + 27, WaypointsMod.uiAccentColor, 11);
+        g.fill(x + 9, y + 20, x + 26, y + 30, WaypointsMod.uiAccentColor);
+        g.fill(x + 12, y + 28, x + 23, y + 36, WaypointsMod.uiAccentColor);
+        g.fill(x + 16, y + 34, x + 20, y + 42, WaypointsMod.uiAccentColor);
+        rounded(g, x + 13, y + 6, x + 23, y + 17, 0xFF101113, 6);
     }
 
     private void nav(GuiGraphicsExtractor g, int mx, int my, int x, int y, String label, boolean active) {
         int w = RAIL - 20;
         boolean hover = mx >= x && mx <= x + w && my >= y && my <= y + 36;
-        if (active || hover) rounded(g, x, y, x + w, y + 36, active ? 0xFF283B1C : PANEL, 7);
-        int c = active ? ACCENT : MUTED;
+        if (active || hover) rounded(g, x, y, x + w, y + 36, active ? WaypointsMod.uiAccentColor : PANEL, 7);
+        int c = active ? 0xFF101410 : MUTED;
         if (label.equals("Waypoints")) drawPinGlyph(g, x + 12, y + 10, c);
         else if (label.equals("Map")) drawCubeGlyph(g, x + 11, y + 10, c);
         else if (label.equals("Settings")) drawSlidersGlyph(g, x + 10, y + 10, c);
         else drawInfoGlyph(g, x + 10, y + 10, c);
-        WaypointUiText.draw(g, font, label, x + 38, y + 11, active ? ACCENT : MUTED, false);
+        WaypointUiText.draw(g, font, label, x + 38, y + 11, active ? 0xFF101410 : MUTED, active);
     }
 
     private void drawPinGlyph(GuiGraphicsExtractor g, int x, int y, int c) {
@@ -173,6 +223,20 @@ public final class WaypointMapScreen extends Screen {
 
     @Override public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         if (event.button() == 1) {
+            int toolX = mapX + 12;
+            int toolY = mapY + 12;
+            if (event.x() >= toolX && event.x() < toolX + 28 && event.y() >= toolY && event.y() < toolY + 28) {
+                zoom = Math.min(200, zoom + 20);
+                return true;
+            }
+            if (event.x() >= toolX && event.x() < toolX + 28 && event.y() >= toolY + 35 && event.y() < toolY + 63) {
+                zoom = Math.max(40, zoom - 20);
+                return true;
+            }
+            if (event.x() >= toolX && event.x() < toolX + 28 && event.y() >= toolY + 70 && event.y() < toolY + 98) {
+                showContours = !showContours;
+                return true;
+            }
             if (event.x() <= RAIL) {
                 if (event.y() >= 112 && event.y() < 148) { Minecraft.getInstance().gui.setScreen(new WaypointScreen(0)); return true; }
                 if (event.y() >= 202 && event.y() < 238) { Minecraft.getInstance().gui.setScreen(new WaypointSettingsScreen()); return true; }

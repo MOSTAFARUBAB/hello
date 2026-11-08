@@ -51,6 +51,8 @@ public class WaypointEditScreen extends Screen {
 
     // The hue strip is static, so generate it once and draw it as one texture.
     private static final int HUE_DISPLAY_HEIGHT = 8;
+    private static final int[] PRESET_COLORS = {0xFF70E000, 0xFF1877F2, 0xFF00C8D7, 0xFF8A2BE2,
+            0xFFE72C91, 0xFFFF8A00, 0xFFFFD21C, 0xFFFFFFFF, 0xFFFF3030};
     private static final int HUE_TEXTURE_HEIGHT = 32;
     private static final int HUE_TEXTURE_WIDTH = 1024;
     private static final Identifier HUE_TEXTURE_ID = Identifier.fromNamespaceAndPath(
@@ -133,7 +135,7 @@ public class WaypointEditScreen extends Screen {
     private int coordinateFieldsY() { return cardTop + locationOffset(156); }
     private int dimensionFieldY() { return cardTop + locationOffset(243); }
     private int pickerX() { return colorX + 18; }
-    private int pickerY() { return cardTop + 43 + Math.round((height - 784) * 0.03f); }
+    private int pickerY() { return cardTop + 78 + Math.round((height - 784) * 0.02f); }
     private int pickerHeight() { return Math.max(108, Math.min(PICKER_MAX_HEIGHT, Math.round(height * 0.095f + 39))); }
     private int pickerWidth() { return Math.max(170, colorWidth - 36); }
     private int hueX() { return pickerX(); }
@@ -199,9 +201,9 @@ public class WaypointEditScreen extends Screen {
         clearWidgets();
         hitTargets.clear();
         scrollHitTargets.clear();
-        railWidth = width >= 1120 ? 190 : width >= 1000 ? 165 : width >= 800 ? Math.max(150, Math.min(190, Math.round(width * 0.16f))) : 0;
-        int leftInset = width >= 1120 ? 33 : width >= 1000 ? 30 : 18;
-        int rightInset = width >= 1120 ? 35 : width >= 1000 ? 37 : 18;
+        railWidth = width >= 800 ? 176 : 0;
+        int leftInset = railWidth > 0 ? 24 : 18;
+        int rightInset = width >= 1120 ? 28 : 18;
         contentLeft = railWidth > 0 ? railWidth + leftInset : leftInset;
         contentRight = width - rightInset;
         int available = Math.max(500, contentRight - contentLeft);
@@ -210,9 +212,9 @@ public class WaypointEditScreen extends Screen {
         colorX = contentLeft + formWidth + 18;
         coordinateWidth = Math.max(72, (formWidth - 52) / 3);
 
-        cardTop = Math.max(140, Math.round(height * 0.19f + 21));
+        cardTop = Math.max(104, Math.round(height * 0.12f));
         oy = cardTop - 10;
-        breadcrumbY = Math.round(height * 0.10f);
+        breadcrumbY = 31;
         locationCardHeight = Math.max(292, Math.min(344, Math.round(308 + (height - 784) * 0.266f)));
         visibilityY = cardTop + locationCardHeight + (height < 830 ? 17 : 16);
         visibilityHeight = Math.max(148, Math.round(156 - (height - 784) * 0.04f));
@@ -236,18 +238,19 @@ public class WaypointEditScreen extends Screen {
         int coordGap = 8;
 
         if (railWidth > 0) {
-            int navY = 153;
-            int sideInset = railWidth > 170 ? 20 : 10;
-            int navWidth = railWidth - sideInset - 14;
-            click(sideInset, navY, navWidth, 32,
+            int navY = 112;
+            int sideInset = 10;
+            int navWidth = railWidth - 20;
+            click(sideInset, navY, navWidth, 36,
                     () -> Minecraft.getInstance().gui.setScreen(new WaypointScreen(returnPage < 0 ? 0 : returnPage)));
-            click(sideInset, navY + 41, navWidth, 32,
+            click(sideInset, navY + 45, navWidth, 36,
                     () -> Minecraft.getInstance().gui.setScreen(new WaypointMapScreen()));
-            click(sideInset, navY + 82, navWidth, 32,
+            click(sideInset, navY + 90, navWidth, 36,
                     () -> Minecraft.getInstance().gui.setScreen(new WaypointSettingsScreen()));
+            click(sideInset, navY + 135, navWidth, 36,
+                    () -> Minecraft.getInstance().gui.setScreen(new WaypointAboutScreen()));
         }
-        // The breadcrumb is the only Back hit area; it never overlaps the page title.
-        click(contentLeft, breadcrumbY - 4, 126, 18, this::back);
+        click(contentLeft, breadcrumbY - 5, 38, 36, this::back);
 
         nameBox = makeBox(nameBox, left + 10, nameY + 7, nameWidth - 20, 20, initName, 32, "Waypoint name");
         xBox = makeBox(xBox, left + 10, coordsY + 7, coordinateWidth - 20, 20, initX, 9, "X");
@@ -258,6 +261,19 @@ public class WaypointEditScreen extends Screen {
         clickContent(left + 150, coordsY + locationOffset(39), Math.max(112, formWidth - 186), 24, this::useLookedAtBlock);
         clickContent(left, dimY, nameWidth, 34, () -> dimensionMenuOpen = !dimensionMenuOpen);
 
+        // Preset swatches are immediate selections; the square picker refines them.
+        int presetY = cardTop + 48;
+        int swatchSize = 22;
+        int swatchGap = Math.max(2, Math.min(8, (colorWidth - 36 - swatchSize * PRESET_COLORS.length) / (PRESET_COLORS.length - 1)));
+        for (int i = 0; i < PRESET_COLORS.length; i++) {
+            final int preset = PRESET_COLORS[i];
+            int px = colorX + 18 + i * (swatchSize + swatchGap);
+            clickContent(px - 2, presetY - 2, swatchSize + 4, swatchSize + 4, () -> {
+                chroma = false;
+                setFromRgb(preset);
+                syncHex();
+            });
+        }
         // Color picker interactions use a wide horizontal saturation/value field and hue strip.
         clickContent(colorX + colorWidth - 58, recentLabelY() - 1, 42, 18, this::resetColor);
         clickContent(previewX(), chromaY(), colorWidth - 20, 46, () -> chroma = !chroma);
@@ -729,25 +745,11 @@ public class WaypointEditScreen extends Screen {
         int formRight = contentLeft + formWidth;
 
         drawSidebar(g, mouseX, mouseY);
-        int topBarHeight = height >= 880 ? 55 : 44;
-        g.fill(railWidth, 0, width, topBarHeight, 0xFF0B0C0E);
-        g.fill(railWidth, topBarHeight - 1, width, topBarHeight, CARD_BORDER);
-        drawCubeGlyph(g, contentLeft, 14, MUTED);
-        String topWorld = fitText(worldTitle(), 112);
-        int topWorldX = contentLeft + 18;
-        WaypointUiText.draw(g, font, topWorld, topWorldX, 17, MUTED, false);
-        int crumbX = topWorldX + WaypointUiText.width(font, topWorld) + 10;
-        WaypointUiText.draw(g, font, "/", crumbX, 17, QUIET, false);
-        WaypointUiText.draw(g, font, "Waypoints", crumbX + 14, 17, TEXT, false);
-        g.fill(width - 132, 18, width - 127, 23, ACCENT);
-        WaypointUiText.draw(g, font, "Local workspace", width - 120, 16, MUTED, false);
-        border(g, width - 49, 15, width - 37, 27, QUIET);
-        WaypointUiText.draw(g, font, "?", width - 45, 17, MUTED, false);
-        WaypointUiText.draw(g, font, original == null ? "<  All waypoints" : "<  All waypoints  /  " + fitText(original.name(), 140), contentLeft, breadcrumbY, MUTED, false);
-        int titleY = height >= 880 ? 127 : 109;
-        WaypointUiText.drawTitle(g, font, original == null ? "Mark somewhere new." : "Edit waypoint", contentLeft, titleY, TEXT);
-        WaypointUiText.draw(g, font, original == null ? "Save a location now. Find your way back whenever you need it." : "Fine-tune the details. Keep your favorite place within reach.",
-                contentLeft, titleY + 32, MUTED, false);
+        rounded(g, contentLeft, breadcrumbY - 5, contentLeft + 38, breadcrumbY + 31, CARD, 8);
+        border(g, contentLeft, breadcrumbY - 5, contentLeft + 38, breadcrumbY + 31, CARD_BORDER);
+        WaypointUiText.draw(g, font, "←", contentLeft + 12, breadcrumbY + 7, TEXT, true);
+        WaypointUiText.drawTitle(g, font, original == null ? "Create Waypoint" : "Edit Waypoint", contentLeft + 54, breadcrumbY + 2, TEXT);
+        int titleY = breadcrumbY + 2;
         if (original != null) {
             rounded(g, contentRight - 101, titleY + 8, contentRight, titleY + 32, 0xFF151B14, 6);
             g.fill(contentRight - 94, titleY + 19, contentRight - 90, titleY + 23, ACCENT);
@@ -822,6 +824,15 @@ public class WaypointEditScreen extends Screen {
         g.fill(colorX + colorWidth - 48, cardTop + 24, colorX + colorWidth - 43, cardTop + 29, ACCENT);
         String colorName = chroma ? "Chroma" : colorName(previewRgb);
         WaypointUiText.draw(g, font, colorName, colorX + colorWidth - WaypointUiText.width(font, colorName) - 18, cardTop + 21, MUTED, false);
+        WaypointUiText.draw(g, font, "Preset colors", colorX + 16, cardTop + 39, MUTED, false);
+        int presetY = cardTop + 48;
+        int swatchSize = 22;
+        int swatchGap = Math.max(2, Math.min(8, (colorWidth - 36 - swatchSize * PRESET_COLORS.length) / (PRESET_COLORS.length - 1)));
+        for (int i = 0; i < PRESET_COLORS.length; i++) {
+            int px = colorX + 18 + i * (swatchSize + swatchGap);
+            rrect(g, px, presetY, px + swatchSize, presetY + swatchSize, PRESET_COLORS[i]);
+            if (!chroma && currentRgb() == (PRESET_COLORS[i] & 0xFFFFFF)) border(g, px - 2, presetY - 2, px + swatchSize + 2, presetY + swatchSize + 2, ACCENT);
+        }
         refreshPickerTexture();
         int pickerW = pickerWidth();
         g.blit(PICKER_TEXTURE_ID, pickerX(), pickerTop, pickerX() + pickerW, pickerTop + pickerHeight(),
@@ -967,42 +978,37 @@ public class WaypointEditScreen extends Screen {
         if (railWidth <= 0) return;
         g.fill(0, 0, railWidth, height, 0xFF101113);
         g.fill(railWidth - 1, 0, railWidth, height, CARD_BORDER);
-        int sideInset = railWidth > 170 ? 20 : 10;
-        int labelX = sideInset + 10;
-        int navWidth = railWidth - sideInset - 14;
-        int brandX = railWidth > 170 ? 20 : 10;
-        rrect(g, brandX, 15, brandX + 27, 42, ACCENT);
-        drawBrandMark(g, brandX, 15);
-        if (railWidth > 70) {
-            int brandTextX = railWidth > 170 ? 56 : 44;
-            WaypointUiText.draw(g, font, "Waypoint", brandTextX, 19, TEXT, false);
-            WaypointUiText.draw(g, font, "M A N A G E R", brandTextX, 31, MUTED, false);
-            rrect(g, sideInset, 65, railWidth - 14, 115, CARD);
-            WaypointUiText.draw(g, font, fitText(worldTitle(), railWidth - 48), labelX, 76, TEXT, false);
-            g.fill(labelX, 98, labelX + 4, 102, ACCENT);
-            WaypointUiText.draw(g, font, "Java Edition | 26.3", labelX + 10, 96, MUTED, false);
-            WaypointUiText.draw(g, font, "WORKSPACE", sideInset, 144, QUIET, false);
-            nav(g, mx, my, sideInset, 153, navWidth, "", "Waypoints", true);
-            nav(g, mx, my, sideInset, 194, navWidth, "", "Map", false);
-            nav(g, mx, my, sideInset, 235, navWidth, "", "Settings", false);
-            int footerTop = height >= 880 ? height - 186 : height >= 830 ? height - 159 : height - 162;
-            int footerBottom = height >= 880 ? height - 75 : height >= 830 ? height - 59 : height - 62;
-            rrect(g, sideInset, footerTop, railWidth - 14, footerBottom, PANEL_ALT);
-            WaypointUiText.draw(g, font, "Your world. Your waypoints.", labelX, footerTop + 31, TEXT, false);
-            WaypointUiText.draw(g, font, "Stored locally, ready for", labelX, footerTop + 51, MUTED, false);
-            WaypointUiText.draw(g, font, "your next adventure.", labelX, footerTop + 66, MUTED, false);
-            g.fill(labelX, footerBottom - 21, labelX + 5, footerBottom - 16, ACCENT);
-            WaypointUiText.draw(g, font, "All changes saved", labelX + 11, footerBottom - 22, MUTED, false);
-            int profileTop = footerBottom + 25;
-            rrect(g, sideInset, profileTop, sideInset + 28, profileTop + 28, CARD_HOVER);
-            WaypointUiText.draw(g, font, "AL", sideInset + 7, profileTop + 9, TEXT, false);
-            WaypointUiText.draw(g, font, Minecraft.getInstance().player == null ? "Player" : Minecraft.getInstance().player.getName().getString(), labelX + 27, profileTop + 6, TEXT, false);
-            WaypointUiText.draw(g, font, "In-game", labelX + 27, profileTop + 18, MUTED, false);
-            for (int dot = 0; dot < 3; dot++) g.fill(railWidth - 27 + dot * 3, profileTop + 13, railWidth - 25 + dot * 3, profileTop + 15, MUTED);
-        } else {
-            nav(g, mx, my, 8, 104, 38, "", "", false);
-            nav(g, mx, my, 8, 150, 38, "", "", false);
-        }
+        int sideInset = 10;
+        rrect(g, sideInset + 8, 20, sideInset + 43, 55, ACCENT);
+        drawBrandMark(g, sideInset + 8, 20);
+        WaypointUiText.draw(g, font, "Simple", sideInset + 51, 22, TEXT, true);
+        WaypointUiText.draw(g, font, "Waypoints", sideInset + 51, 36, TEXT, true);
+        int navWidth = railWidth - 20;
+        nav(g, mx, my, sideInset, 112, navWidth, "", "Waypoints", true);
+        nav(g, mx, my, sideInset, 157, navWidth, "", "Map", false);
+        nav(g, mx, my, sideInset, 202, navWidth, "", "Settings", false);
+        nav(g, mx, my, sideInset, 247, navWidth, "", "About", false);
+        int base = height - 72;
+        g.fill(14, base - 25, 42, base - 7, 0xFF79502E);
+        g.fill(14, base - 28, 42, base - 22, 0xFF4F9C35);
+        g.fill(18, base - 26, 24, base - 24, 0xFF82C94B);
+        WaypointUiText.draw(g, font, "v1.4.2", 54, base - 3, ACCENT, true);
+    }
+
+    private void drawBrandMark(GuiGraphicsExtractor g, int x, int y) {
+        int c = 0xFF101410;
+        drawPixelLine(g, x + 6, y + 14, x + 20, y + 6, c);
+        drawPixelLine(g, x + 20, y + 6, x + 15, y + 21, c);
+        drawPixelLine(g, x + 15, y + 21, x + 12, y + 14, c);
+        drawPixelLine(g, x + 12, y + 14, x + 6, y + 14, c);
+        drawPixelLine(g, x + 12, y + 14, x + 20, y + 6, c);
+    }
+
+    private void drawPixelLine(GuiGraphicsExtractor g, int x1, int y1, int x2, int y2, int color) {
+        int dx = Math.abs(x2 - x1), sx = x1 < x2 ? 1 : -1;
+        int dy = -Math.abs(y2 - y1), sy = y1 < y2 ? 1 : -1;
+        int err = dx + dy, x = x1, y = y1;
+        while (true) { g.fill(x, y, x + 1, y + 1, color); if (x == x2 && y == y2) break; int e2 = 2 * err; if (e2 >= dy) { err += dy; x += sx; } if (e2 <= dx) { err += dx; y += sy; } }
     }
 
     private void drawSlidersGlyph(GuiGraphicsExtractor g, int x, int y, int color) {
@@ -1026,28 +1032,14 @@ public class WaypointEditScreen extends Screen {
         g.fill(x + 4, y + 3, x + 8, y + 6, CARD);
     }
 
-    private void drawBrandMark(GuiGraphicsExtractor g, int x, int y) {
-        int c = 0xFF101410;
-        drawPixelLine(g, x + 6, y + 14, x + 20, y + 6, c);
-        drawPixelLine(g, x + 20, y + 6, x + 15, y + 21, c);
-        drawPixelLine(g, x + 15, y + 21, x + 12, y + 14, c);
-        drawPixelLine(g, x + 12, y + 14, x + 6, y + 14, c);
-        drawPixelLine(g, x + 12, y + 14, x + 20, y + 6, c);
-    }
-    private void drawPixelLine(GuiGraphicsExtractor g, int x1, int y1, int x2, int y2, int color) {
-        int dx = Math.abs(x2 - x1), sx = x1 < x2 ? 1 : -1;
-        int dy = -Math.abs(y2 - y1), sy = y1 < y2 ? 1 : -1;
-        int err = dx + dy, x = x1, y = y1;
-        while (true) { g.fill(x, y, x + 1, y + 1, color); if (x == x2 && y == y2) break; int e2 = 2 * err; if (e2 >= dy) { err += dy; x += sx; } if (e2 <= dx) { err += dx; y += sy; } }
-    }
-
     private void nav(GuiGraphicsExtractor g, int mx, int my, int x, int y, int w, String icon, String label, boolean active) {
-        if (active || inside(mx, my, x, y, w, 32)) rrect(g, x, y, x + w, y + 32, 0xFF202629);
+        if (active || inside(mx, my, x, y, w, 36)) rrect(g, x, y, x + w, y + 36, active ? 0xFF263B1C : CARD);
         int tint = active ? ACCENT : MUTED;
-        if ("Waypoints".equals(label) || label.isEmpty()) drawPinGlyph(g, x + 11, y + 9, tint);
-        else if ("Map".equals(label)) drawPinGlyph(g, x + 11, y + 9, tint);
-        else drawSlidersGlyph(g, x + 10, y + 10, tint);
-        if (!label.isEmpty()) WaypointUiText.draw(g, font, label, x + 30, y + 10, active ? TEXT : MUTED, false);
+        if ("Waypoints".equals(label) || label.isEmpty()) drawPinGlyph(g, x + 11, y + 12, tint);
+        else if ("Map".equals(label)) drawCubeGlyph(g, x + 10, y + 12, tint);
+        else if ("Settings".equals(label)) drawSlidersGlyph(g, x + 10, y + 12, tint);
+        else { rrect(g, x + 10, y + 11, x + 24, y + 25, tint); WaypointUiText.draw(g, font, "i", x + 15, y + 13, 0xFF101113, true); }
+        if (!label.isEmpty()) WaypointUiText.draw(g, font, label, x + 34, y + 12, active ? ACCENT : MUTED, false);
     }
 
     private void card(GuiGraphicsExtractor g, int x, int y, int w, int h) {

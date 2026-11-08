@@ -1,8 +1,6 @@
-# Simple Waypoints 1.3.3
+# Simple Waypoints Manager 1.4.2 — Neon Interface Redesign
 
-Updated Waypoint Manager UI: screenshot-matched dark workspace layout, invisible hit targets instead of vanilla placeholder buttons, responsive editor/color-picker spacing, colored initial avatars, and a top-down surface-map preview with a waypoint callout. The preview samples only already-loaded client chunks and uses the world-surface heightmap, so it shows surface terrain and builds without loading chunks or revealing underground rooms.
-
-# Simple Waypoints — Waypoint Manager UI
+A client-side Fabric waypoint manager for Minecraft 26.3 with a redesigned dark interface, neon-green accents, a waypoint-card dashboard, a waypoint editor with color presets and Chroma mode, a surface-map preview, and settings.
 
 Client-side Fabric waypoint manager for Minecraft 26.3 (Java 25).
 
@@ -33,7 +31,7 @@ A maximum display distance of `0` means unlimited. This preserves the long-range
 
 ## Build
 
-Use Java 25 and Gradle 9.8 or compatible Loom tooling:
+Use Java 25 and Gradle 9.8.0 with Fabric Loom 1.17.21:
 
 ```bash
 gradle clean build --no-daemon -PwithBeam=true
@@ -73,9 +71,17 @@ Build requirements: Java 25 and Gradle (Fabric Loom downloads the required Minec
 - Uses the Minecraft 26.3 chat listener overlay path for navigation notices instead of removed player message methods.
 
 
-## Version 1.4.0 UI refresh
+## Version 1.4.2 neon interface redesign
 
-- Added a dedicated waypoint map overview and sidebar navigation to it.
-- Kept the HSV saturation/value picker, hue strip, HEX field, recent colors, and Chroma mode in the waypoint editor.
-- Minecraft target: 26.3; Java toolchain: 25; Fabric Loom is configured separately using the compatible `1.18-SNAPSHOT` plugin line.
-- The map overview is a schematic preview and waypoint list, not a live terrain tile map.
+- Replaced the dashboard workspace-summary layout with a waypoint-first card grid, dimension filters, search, waypoint thumbnails, and Import / Export actions.
+- Shared four-item sidebar navigation across Waypoints, Map, Settings, and About.
+- Reworked Settings into four compact panels: General, Map Settings, Appearance, and Data. The switches, label-size controls, beam-opacity slider, import/export, and reset actions are interactive.
+- Added nine preset color swatches to the editor, while retaining the HSV square, hue slider, HEX field, eyedropper, recent colors, and Chroma switch.
+- Added a dedicated map overview with waypoint markers and a legend. It is a schematic preview, not a live tile map of the current world.
+- Minecraft target: 26.3; Java toolchain: 25; Fabric Loader: 0.19.5; Fabric API: 0.163.0+26.3; Fabric Loom: 1.17.21.
+- Build uses Gradle 9.8.0 and Java 25.
+
+
+## Version 1.4.2 build notes
+
+The Minecraft game version is **26.3**. Fabric Loom has its own independent version number (configured here as **1.17.21**); it is not set to 26.3. The GitHub Actions workflow uses Gradle 9.8.0 and Java 25.

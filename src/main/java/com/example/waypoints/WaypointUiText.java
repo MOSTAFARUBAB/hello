@@ -23,7 +23,7 @@ import java.util.Set;
 
 /** Shared, antialiased text renderer and sizing helpers for the custom waypoint UI. */
 final class WaypointUiText {
-    static final int LINE_HEIGHT = 11;
+    static final int LINE_HEIGHT = 13;
 
     private static final int ATLAS_WIDTH = 512;
     private static final int ATLAS_HEIGHT = 128;
@@ -34,7 +34,7 @@ final class WaypointUiText {
     private static final Map<AtlasKey, GlyphAtlas> ATLASES = new LinkedHashMap<>();
     private static final Map<String, Integer> WIDTH_CACHE = new LinkedHashMap<>();
 
-    private static final java.awt.Font METRIC_FONT = new java.awt.Font("Dialog", java.awt.Font.PLAIN, 9);
+    private static final java.awt.Font METRIC_FONT = new java.awt.Font("Dialog", java.awt.Font.PLAIN, 11);
     private static final BufferedImage METRIC_IMAGE = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
     private static final Graphics2D METRIC_GRAPHICS = METRIC_IMAGE.createGraphics();
     private static final FontMetrics METRICS;
@@ -66,7 +66,7 @@ final class WaypointUiText {
     }
 
     static void draw(GuiGraphicsExtractor g, Font font, String text, int x, int y, int color, boolean shadow) {
-        drawText(g, text, x, y, color, shadow, false, 9);
+        drawText(g, text, x, y, color, shadow, false, 11);
     }
 
     static void draw(GuiGraphicsExtractor g, Font font, FormattedCharSequence text, int x, int y, int color, boolean shadow) {
@@ -79,15 +79,15 @@ final class WaypointUiText {
     }
 
     static void drawCompact(GuiGraphicsExtractor g, Font font, String text, int x, int y, int color) {
-        drawText(g, text, x, y, color, false, false, 9);
+        drawText(g, text, x, y, color, false, false, 10);
     }
 
     static void drawStrong(GuiGraphicsExtractor g, Font font, String text, int x, int y, int color) {
-        drawText(g, text, x, y, color, false, true, 9);
+        drawText(g, text, x, y, color, false, true, 12);
     }
 
     static void drawTitle(GuiGraphicsExtractor g, Font font, String text, int x, int y, int color) {
-        drawText(g, text, x, y, color, false, true, 12);
+        drawText(g, text, x, y, color, false, true, 16);
     }
 
     /** The native EditBox remains responsible for input; its visible text uses the same smooth UI glyphs. */
@@ -104,10 +104,10 @@ final class WaypointUiText {
             while (end > shownCursor && width(font, shown.substring(0, end)) > maxWidth) end--;
             shown = shown.substring(0, Math.max(shownCursor, end));
         }
-        drawText(g, shown, x, y, 0xFFF2F4F5, false, false, 10);
+        drawText(g, shown, x, y, 0xFFF2F4F5, false, false, 11);
         if (box.isFocused() && ((System.currentTimeMillis() / 500L) & 1L) == 0L) {
             int caretX = x + width(font, shown.substring(0, Math.min(shownCursor, shown.length())));
-            g.fill(caretX, y - 1, caretX + 1, y + 9, 0xFFF2F4F5);
+            g.fill(caretX, y - 1, caretX + 1, y + 12, 0xFFF2F4F5);
         }
     }
 

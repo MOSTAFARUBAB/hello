@@ -5,6 +5,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 
 import java.util.List;
 
@@ -16,6 +17,7 @@ public final class WaypointMapScreen extends Screen {
     private static final int TEXT = 0xFFF2F5F5;
     private static final int MUTED = 0xFFA3ABB0;
     private static final int RAIL = 176;
+    private static final Identifier MAP_TEXTURE = Identifier.fromNamespaceAndPath("simplewaypoints", "textures/gui/surface_map_base.png");
     private List<Waypoint> waypoints = List.of();
     private int mapX, mapY, mapW, mapH;
     private int zoom = 100;
@@ -46,46 +48,12 @@ public final class WaypointMapScreen extends Screen {
         int top = mapY, bottom = mapY + mapH;
         rounded(g, mapX, top, mapX + mapW, bottom, 0xFF13251B, 11);
         border(g, mapX, top, mapX + mapW, bottom, EDGE);
-        // A stylized overhead biome surface, built from broad terrain regions and contour paths.
-        g.fill(mapX + 1, top + 1, mapX + mapW - 1, bottom - 1, 0xFF245037);
-        // Varied forest and meadow patches give the preview a satellite-map feel.
-        for (int i = 0; i < 190; i++) {
-            int px = mapX + 5 + Math.abs((i * 977 + 31) % Math.max(1, mapW - 14));
-            int py = top + 5 + Math.abs((i * 613 + 17) % Math.max(1, mapH - 14));
-            int size = 3 + (i % 5) * 2;
-            int c = switch (i % 5) { case 0 -> 0xFF326B43; case 1 -> 0xFF2B5D3B; case 2 -> 0xFF407947; case 3 -> 0xFF537D4E; default -> 0xFF294B36; };
-            g.fill(px, py, Math.min(mapX + mapW - 2, px + size), Math.min(bottom - 2, py + Math.max(2, size / 2)), c);
-        }
-        // Snowy highlands in the north-east corner, plus pale rock outcrops.
-        for (int i = 0; i < 38; i++) {
-            int px = mapX + mapW * 3 / 4 + Math.abs((i * 37 + 5) % Math.max(1, mapW / 4 - 8));
-            int py = top + 8 + Math.abs((i * 53 + 7) % Math.max(1, mapH / 3));
-            g.fill(px, py, Math.min(mapX + mapW - 3, px + 4 + i % 6), Math.min(top + mapH / 2, py + 3 + i % 5), i % 3 == 0 ? 0xFFE1E7DC : 0xFF9DA99B);
-        }
-        int seed = 31415;
-        for (int i = 0; i < 22; i++) {
-            int px = mapX + 18 + Math.abs((seed * (i + 3) + i * 911) % Math.max(1, mapW - 36));
-            int py = top + 18 + Math.abs((seed / (i + 2) + i * 73) % Math.max(1, mapH - 36));
-            int size = 8 + (i % 4) * 4;
-            g.fill(px, py, Math.min(mapX + mapW - 4, px + size), Math.min(bottom - 4, py + size / 2), i % 4 == 0 ? 0xFF326A45 : 0xFF2B5C3C);
-        }
-        // Rivers / paths.
-        for (int step = 0; step < mapW - 20; step++) {
-            double t = step / (double)Math.max(1, mapW - 20);
-            int py = top + mapH / 2 + (int)(Math.sin(t * Math.PI * 3.0) * mapH * 0.16);
-            g.fill(mapX + 10 + step, py, mapX + 11 + step, py + 5, 0xFF245C7D);
-            if (step % 9 == 0) g.fill(mapX + 10 + step, py + 5, mapX + 15 + step, py + 6, 0xFF347A9A);
-        }
-        if (showContours) {
-            for (int layer = -4; layer <= 4; layer++) {
-                for (int px = mapX + 4; px < mapX + mapW - 4; px++) {
-                    double t = (px - mapX) / (double)Math.max(1, mapW);
-                    int py = (int)(top + mapH * .5 + layer * mapH * .085 + Math.sin(t * Math.PI * 2 + layer * .5) * mapH * .07);
-                    if (py > top + 4 && py < bottom - 4) g.fill(px, py, px + 1, py + 1, 0x554F8D5B);
-                }
-            }
-        }
-
+        // Textured overhead terrain replaces the former empty green schematic
+        // with hand-drawn sine-wave rivers and sparse rectangles. Waypoint pins
+        // below remain dynamic and are positioned from the actual saved data.
+        g.blit(MAP_TEXTURE, mapX + 1, top + 1, mapX + mapW - 1, bottom - 1,
+                0.0f, 1.0f, 0.0f, 1.0f);
+        g.fill(mapX + 1, top + 1, mapX + mapW - 1, bottom - 1, 0x16040A08);
         if (!waypoints.isEmpty()) {
             int minX = waypoints.stream().mapToInt(Waypoint::x).min().orElse(0);
             int maxX = waypoints.stream().mapToInt(Waypoint::x).max().orElse(0);
@@ -168,7 +136,7 @@ public final class WaypointMapScreen extends Screen {
         nav(g, mx, my, 10, 247, "About", false);
         g.fill(14, height - 96, 42, height - 77, 0xFF79502E);
         g.fill(14, height - 99, 42, height - 92, 0xFF4F9C35);
-        WaypointUiText.draw(g, font, "v1.4.5", 54, height - 91, WaypointsMod.uiAccentColor, true);
+        WaypointUiText.draw(g, font, "v1.4.6", 54, height - 91, WaypointsMod.uiAccentColor, true);
     }
 
     private void drawBrandMark(GuiGraphicsExtractor g, int x, int y) {

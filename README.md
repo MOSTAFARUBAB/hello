@@ -1,4 +1,4 @@
-# Simple Waypoints Manager 1.4.5 — Reference UI Layout
+# Simple Waypoints Manager 1.4.6 — Reference UI Layout
 
 A client-side Fabric waypoint manager for Minecraft 26.3 with a redesigned dark interface, neon-green accents, a waypoint-card dashboard, a waypoint editor with color presets and Chroma mode, a surface-map preview, and settings.
 
@@ -100,7 +100,7 @@ Added the missing `drawPinGlyph` helper to `WaypointSettingsScreen`, fixing the 
 - Standardized rounded button and panel styling across dashboard, editor, map, settings, and about screens.
 
 
-## Version 1.4.5 reference UI layout
+## Version 1.4.6 reference UI layout
 
 - Reworked the dashboard into a compact three-column, two-row waypoint card grid, with landscape-style scene thumbnails, compact coordinates, dimension chips, search, dimension filters, and Import / Export controls.
 - Rebuilt the waypoint editor around the supplied reference: a left-side details panel with coordinate fields, dimension selector, selectable marker symbols, nine preset colors, HSV picker, HEX input, block-color eyedropper, and Chroma button; the right side contains the scene preview and beacon / label / match-color switches.
@@ -109,3 +109,13 @@ Added the missing `drawPinGlyph` helper to `WaypointSettingsScreen`, fixing the 
 - Added antialiased sans-serif text atlases generated at runtime from Java's logical Dialog font (no font file is bundled), reduced title sizing, and updated the lime active-navigation pill and sidebar location-pin mark.
 - New waypoint marker choices are stored in the existing backwards-compatible `markerText` field.
 - Minecraft target: 26.3; Java toolchain: 25; Fabric Loader: 0.19.5; Fabric API: 0.163.0+26.3; Fabric Loom: 1.17.21.
+
+
+## Version 1.4.6 UI correction
+
+The dashboard always keeps the compact three-column / two-row waypoint grid (one saved waypoint no longer expands into a full-width row). Waypoint cards and the editor preview now use bundled Minecraft scene image textures instead of the prior flat rectangle illustrations. The Surface Map uses a textured overhead terrain preview with live waypoint markers drawn from saved coordinates. The map background is illustrative and is not a live, chunk-sampled map of the current world. The unused legacy flat-scene and mini-map painters, plus the unused bitmap-font assets, have been removed; visible menu text now uses a larger antialiased sans-serif atlas.
+
+
+## Important install note
+
+Before testing this version, remove every older `simple-waypoints-*.jar` from the Minecraft `mods` folder. Keep only the newly built JAR; otherwise Fabric may load an older copy and the screen will still show the previous version.

@@ -6,6 +6,7 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +14,6 @@ import java.util.Locale;
 
 /** Full workspace dashboard replacing the former compact modal waypoint menu. */
 public final class WaypointScreen extends Screen {
-    private static final String[] FILTER_LABELS = {"All dimensions", "Overworld", "The Nether", "The End"};
     private static final int BG = 0xFF0B0C0E;
     private static final int RAIL = 0xFF101113;
     private static final int PANEL = 0xFF131518;
@@ -22,13 +22,18 @@ public final class WaypointScreen extends Screen {
     private static final int TEXT = 0xFFF2F5F5;
     private static final int MUTED = 0xFF9BA4A8;
     private static final int QUIET = 0xFF687278;
-    private static final int RED = 0xFFE58A8A;
+    private static final Identifier THUMB_HOME = Identifier.fromNamespaceAndPath("simplewaypoints", "textures/gui/waypoint_home.png");
+    private static final Identifier THUMB_NETHER = Identifier.fromNamespaceAndPath("simplewaypoints", "textures/gui/waypoint_nether.png");
+    private static final Identifier THUMB_TOWER = Identifier.fromNamespaceAndPath("simplewaypoints", "textures/gui/waypoint_tower.png");
+    private static final Identifier THUMB_DUNGEON = Identifier.fromNamespaceAndPath("simplewaypoints", "textures/gui/waypoint_dungeon.png");
+    private static final Identifier THUMB_STRONGHOLD = Identifier.fromNamespaceAndPath("simplewaypoints", "textures/gui/waypoint_stronghold.png");
+    private static final Identifier THUMB_END = Identifier.fromNamespaceAndPath("simplewaypoints", "textures/gui/waypoint_end.png");
 
     private final int requestedPage;
     private int page;
     private String searchQuery;
     private int railWidth, contentX, contentRight, contentWidth;
-    private int headingY, statsY, statsHeight, sectionY, transferY;
+    private int headingY, transferY;
     private int toolbarY, filtersY, gridY, footerY, columns, rows, cardWidth, cardHeight, pageSize;
     private record HitTarget(int x, int y, int width, int height, Runnable action) {
         boolean contains(double px, double py) {
@@ -75,9 +80,6 @@ public final class WaypointScreen extends Screen {
         contentRight = width - rightInset;
         contentWidth = Math.max(220, contentRight - contentX);
         headingY = 28;
-        statsY = 0;
-        statsHeight = 0;
-        sectionY = 0;
         transferY = height - 39;
         toolbarY = 76;
         filtersY = toolbarY;
@@ -88,19 +90,20 @@ public final class WaypointScreen extends Screen {
         columns = listLayout ? 1 : contentWidth >= 540 ? 3 : contentWidth >= 350 ? 2 : 1;
         rows = listLayout ? Math.max(1, Math.min(6, filtered.size())) : 2;
         cardWidth = (contentWidth - (columns - 1) * 12) / columns;
-        cardHeight = Math.max(118, (footerY - gridY - 12 * (rows - 1) - 2) / rows);
+        cardHeight = Math.max(132, Math.min(180, (footerY - gridY - 12 * (rows - 1) - 2) / rows));
         pageSize = columns * rows;
 
         entries = new ArrayList<>(WaypointsMod.menuWaypoints());
         if (sortByName) entries.sort((a, b) -> a.name().compareToIgnoreCase(b.name()));
         refreshFiltered();
-        // Avoid leaving most of the dashboard empty when only one or two
-        // waypoints exist: let the visible cards use the available width.
+        // Keep the reference's compact 3-column / 2-row grid even when there
+        // is only one saved waypoint. A single waypoint must never become a
+        // full-width legacy list card.
         int preferredColumns = listLayout ? 1 : contentWidth >= 540 ? 3 : contentWidth >= 350 ? 2 : 1;
-        columns = Math.max(1, Math.min(preferredColumns, Math.max(1, filtered.size())));
-        rows = listLayout ? Math.max(1, Math.min(6, filtered.size())) : (filtered.size() > columns ? 2 : 1);
+        columns = preferredColumns;
+        rows = listLayout ? Math.max(1, Math.min(6, filtered.size())) : 2;
         cardWidth = (contentWidth - (columns - 1) * 12) / columns;
-        cardHeight = Math.max(118, (footerY - gridY - 12 * (rows - 1) - 2) / rows);
+        cardHeight = Math.max(132, Math.min(180, (footerY - gridY - 12 * (rows - 1) - 2) / rows));
         pageSize = columns * rows;
         page = Math.max(0, Math.min(requestedPage, Math.max(0, (filtered.size() - 1) / pageSize)));
 
@@ -333,7 +336,7 @@ public final class WaypointScreen extends Screen {
             navItem(g, mx, my, navX, 247, navW, "", "About", false);
             int base = height - 72;
             drawGrassBlock(g, 14, base - 27);
-            WaypointUiText.draw(g, font, "v1.4.5", 54, base - 3, WaypointsMod.uiAccentColor, true);
+            WaypointUiText.draw(g, font, "v1.4.6", 54, base - 3, WaypointsMod.uiAccentColor, true);
         } else {
             navItem(g, mx, my, 8, 112, 38, "", "", true);
             navItem(g, mx, my, 8, 156, 38, "", "", false);
@@ -360,19 +363,6 @@ public final class WaypointScreen extends Screen {
         g.fill(x + 12, y + 28, x + 23, y + 36, WaypointsMod.uiAccentColor);
         g.fill(x + 16, y + 34, x + 20, y + 42, WaypointsMod.uiAccentColor);
         rounded(g, x + 13, y + 6, x + 23, y + 17, 0xFF101113, 6);
-    }
-
-    private void drawPixelLine(GuiGraphicsExtractor g, int x1, int y1, int x2, int y2, int color) {
-        int dx = Math.abs(x2 - x1), sx = x1 < x2 ? 1 : -1;
-        int dy = -Math.abs(y2 - y1), sy = y1 < y2 ? 1 : -1;
-        int err = dx + dy, x = x1, y = y1;
-        while (true) {
-            g.fill(x, y, x + 1, y + 1, color);
-            if (x == x2 && y == y2) break;
-            int e2 = 2 * err;
-            if (e2 >= dy) { err += dy; x += sx; }
-            if (e2 <= dx) { err += dx; y += sy; }
-        }
     }
 
     private void drawCubeGlyph(GuiGraphicsExtractor g, int x, int y, int color) {
@@ -403,15 +393,6 @@ public final class WaypointScreen extends Screen {
             WaypointUiText.draw(g, font, "i", x + 15, y + 12, RAIL, true);
         }
         if (!label.isEmpty()) WaypointUiText.draw(g, font, label, x + 34, y + 12, active ? 0xFF101410 : MUTED, active);
-    }
-
-    private void statCard(GuiGraphicsExtractor g, int x, int y, int w, int h, String label, String value, String note, String icon) {
-        rounded(g, x, y, x + w, y + h, PANEL, 9);
-        border(g, x, y, x + w, y + h, EDGE);
-        WaypointUiText.draw(g, font, label, x + 12, y + 9, MUTED, false);
-        WaypointUiText.draw(g, font, fit(value, w - 24), x + 12, y + 25, TEXT, false);
-        WaypointUiText.draw(g, font, fit(note, w - 24), x + 12, y + h - 14, QUIET, false);
-        WaypointUiText.draw(g, font, icon, x + w - 24, y + 10, MUTED, false);
     }
 
     private void drawSearch(GuiGraphicsExtractor g, int mx, int my) {
@@ -458,8 +439,8 @@ public final class WaypointScreen extends Screen {
             rounded(g, x, y, x + cardWidth, y + cardHeight, hover ? 0xFF1B211E : PANEL, 9);
             border(g, x, y, x + cardWidth, y + cardHeight, EDGE);
             int color = 0xFF000000 | WaypointsMod.resolveColor(w);
-            int thumbH = Math.max(48, Math.min(76, cardHeight * 46 / 100));
-            drawSceneThumbnail(g, x + 1, y + 1, cardWidth - 2, thumbH, w, color);
+            int thumbH = Math.max(60, Math.min(90, cardHeight * 53 / 100));
+            drawSceneThumbnail(g, x + 1, y + 1, cardWidth - 44, thumbH, w);
             // Overlay star and overflow affordances, as in the supplied card design.
             WaypointUiText.draw(g, font, "★", x + cardWidth - 31, y + 7, WaypointsMod.uiAccentColor, true);
             WaypointUiText.draw(g, font, "...", x + cardWidth - 15, y + 7, 0xFFFFFFFF, true);
@@ -481,120 +462,28 @@ public final class WaypointScreen extends Screen {
         WaypointUiGlyphs.draw(g, font, x + 2, y + 2, 16, waypoint.safeMarkerText(), contrastText(color));
     }
 
-    private void drawSceneThumbnail(GuiGraphicsExtractor g, int x, int y, int w, int h, Waypoint waypoint, int marker) {
-        String dim = WaypointsMod.normalizeDimension(waypoint.dimension());
-        boolean nether = dim.endsWith(":the_nether");
-        boolean end = dim.endsWith(":the_end");
-        String name = waypoint.name().toLowerCase(Locale.ROOT);
-        int sky = nether ? 0xFF30203B : end ? 0xFF302A45 : 0xFF6C98C0;
-        int far = nether ? 0xFF59324D : end ? 0xFF676080 : 0xFF547B58;
-        int land = nether ? 0xFF4B2638 : end ? 0xFF50485E : 0xFF315A37;
-        int ground = nether ? 0xFF39202D : end ? 0xFF413A4E : 0xFF29472D;
-        g.fill(x, y, x + w, y + h, sky);
-        // soft block clouds and distant ridgelines
-        for (int i = 0; i < 4; i++) {
-            int cx = x + (w * (i * 3 + 1) / 13);
-            int cy = y + 7 + (i % 2) * 4;
-            g.fill(cx, cy, Math.min(x + w, cx + 14), cy + 3, 0x44FFFFFF);
-            g.fill(cx + 4, cy - 2, Math.min(x + w, cx + 11), cy + 3, 0x33FFFFFF);
-        }
-        int seed = Math.abs(waypoint.x() * 31 + waypoint.z() * 17 + waypoint.name().hashCode());
-        for (int i = 0; i < 6; i++) {
-            int hx = x + i * w / 6;
-            int hh = 8 + Math.abs((seed >> (i % 16)) % Math.max(8, h / 3));
-            g.fill(hx, y + h / 2 - hh / 2, Math.min(x + w, hx + w / 4 + 3), y + h, far);
-        }
-        g.fill(x, y + h * 3 / 4, x + w, y + h, ground);
-        // Distant river / path accents
-        for (int i = 0; i < w; i++) {
-            int py = y + h * 4 / 5 + (int)(Math.sin((i + seed % 31) * 0.10) * 3);
-            if (!nether && !end && i % 3 != 0) g.fill(x + i, py, x + i + 1, py + 2, 0xFF356B8B);
-        }
-        // Small trees, each with a shaded trunk and stepped leaf canopy.
-        for (int i = 0; i < 7; i++) {
-            int tx = x + 8 + Math.abs((seed + i * 47) % Math.max(1, w - 20));
-            int th = 10 + Math.abs((seed / (i + 1) + i * 11) % Math.max(8, h / 3));
-            int ty = y + h - th - 5;
-            int leaf = nether ? 0xFF853F69 : end ? 0xFF8C81A8 : (i % 2 == 0 ? 0xFF397D3A : 0xFF2D6A35);
-            g.fill(tx + 3, ty + th / 2, tx + 6, y + h - 2, 0xFF765239);
-            g.fill(tx, ty + 4, tx + 12, ty + th / 2 + 4, leaf);
-            g.fill(tx + 2, ty, tx + 10, ty + 8, leaf);
-            g.fill(tx + 3, ty + 2, tx + 6, ty + 4, 0x447FFFFF);
-        }
-        // A distinct landmark per card name: house, tower, portal, dungeon, or stronghold.
-        int bx = x + w / 2 - 14;
-        int by = y + h / 2 - 1;
-        if (name.contains("nether") || nether) {
-            g.fill(bx - 4, by - 16, bx + 4, by + 13, 0xFF24182B);
-            g.fill(bx + 24, by - 16, bx + 32, by + 13, 0xFF24182B);
-            g.fill(bx - 4, by - 16, bx + 32, by - 9, 0xFF24182B);
-            g.fill(bx + 1, by - 9, bx + 27, by + 12, 0xFF6B237F);
-            g.fill(bx + 5, by - 6, bx + 23, by + 9, 0xFF9D42C4);
-        } else if (name.contains("tower")) {
-            g.fill(bx + 5, by - 20, bx + 22, y + h - 7, 0xFF6F7868);
-            g.fill(bx + 1, by - 24, bx + 26, by - 18, 0xFF424D45);
-            g.fill(bx + 8, by - 13, bx + 12, by - 7, 0xFFFFD56A);
-            g.fill(bx + 17, by - 13, bx + 20, by - 7, 0xFFFFD56A);
-        } else if (name.contains("dungeon") || name.contains("stronghold") || name.contains("end")) {
-            g.fill(bx - 8, by - 4, bx + 36, by + 19, 0xFF4A4E4B);
-            g.fill(bx - 3, by - 15, bx + 31, by - 5, 0xFF777D76);
-            g.fill(bx + 7, by + 1, bx + 21, by + 18, 0xFF101316);
-            g.fill(bx + 10, by + 5, bx + 18, by + 12, end ? 0xFF5BCBD1 : 0xFF283A2E);
-        } else {
-            // little castle house with roof, windows and a lit doorway
-            g.fill(bx - 8, by + 1, bx + 34, by + 20, 0xFF8C7860);
-            g.fill(bx - 12, by - 7, bx + 38, by + 2, 0xFF4C4440);
-            g.fill(bx - 7, by - 13, bx + 33, by - 6, 0xFF65554A);
-            g.fill(bx + 7, by + 8, bx + 17, by + 20, 0xFF34251D);
-            g.fill(bx - 1, by + 6, bx + 4, by + 11, 0xFFFFD88B);
-            g.fill(bx + 23, by + 6, bx + 28, by + 11, 0xFFFFD88B);
-        }
-        // The marker beam keeps the destination obvious without obscuring the scene.
-        int cx = x + w / 2;
-        g.fill(cx - 1, y + 5, cx + 2, y + h - 13, 0x66FFFFFF);
-        g.fill(cx - 2, y + 5, cx + 3, y + h - 13, marker & 0x44FFFFFF);
-        g.fill(x, y + h - 2, x + w, y + h, 0xAA080B0A);
-    }
-
-    private void drawMiniMap(GuiGraphicsExtractor g, int x, int y, int w, int h, int color, Waypoint waypoint) {
-        rounded(g, x, y, x + w, y + h, 0xFF101A17, 6);
-        // Soft contour strokes create a quiet map-like texture without loading external assets.
-        for (int layer = -3; layer <= 3; layer++) {
-            for (int px = x + 3; px < x + w - 3; px++) {
-                double t = (px - x) / (double)Math.max(1, w);
-                double wave = Math.sin(t * Math.PI * 2.0 + layer * 0.48) * h * 0.13
-                        + Math.sin(t * Math.PI * 4.0 - layer * 0.2) * h * 0.05;
-                int py = (int)Math.round(y + h * 0.5 + layer * h * 0.13 + wave);
-                if (py > y + 2 && py < y + h - 2) g.fill(px, py, px + 1, py + 1, 0x554E755D);
-            }
-        }
-        int cx = x + w / 2;
-        int cy = y + h / 2;
-        int marker = color | 0xFF000000;
-        g.fill(cx - 1, y + 3, cx + 2, cy - 5, marker);
-        rounded(g, cx - 7, cy - 7, cx + 8, cy + 8, 0xFF101410, 5);
-        border(g, cx - 7, cy - 7, cx + 8, cy + 8, marker);
-        g.fill(cx - 1, cy - 3, cx + 2, cy + 1, marker);
-        g.fill(cx - 4, cy - 1, cx + 5, cy + 3, marker);
-        g.fill(cx - 2, cy + 3, cx + 3, cy + 5, marker);
-        g.fill(cx, cy + 5, cx + 1, cy + 7, marker);
-    }
-
-    private String firstInitial(String name) {
-        if (name == null || name.isBlank()) return "?";
-        return name.strip().substring(0, 1).toUpperCase(Locale.ROOT);
+    private void drawSceneThumbnail(GuiGraphicsExtractor g, int x, int y, int w, int h, Waypoint waypoint) {
+        String name = waypoint.name() == null ? "" : waypoint.name().toLowerCase(Locale.ROOT);
+        String dimension = WaypointsMod.normalizeDimension(waypoint.dimension());
+        Identifier texture;
+        if (dimension.endsWith(":the_nether") || name.contains("nether")) texture = THUMB_NETHER;
+        else if (dimension.endsWith(":the_end") || name.contains("end portal")) texture = THUMB_END;
+        else if (name.contains("tower")) texture = THUMB_TOWER;
+        else if (name.contains("dungeon")) texture = THUMB_DUNGEON;
+        else if (name.contains("stronghold")) texture = THUMB_STRONGHOLD;
+        else if (name.contains("portal")) texture = THUMB_NETHER;
+        else texture = THUMB_HOME;
+        // These are actual bundled image textures rather than the old flat
+        // rectangle scene generator, which was the main reason cards looked
+        // like the obsolete placeholder menu.
+        g.blit(texture, x, y, x + w, y + h, 0.0f, 1.0f, 0.0f, 1.0f);
+        g.fill(x, y + h - 3, x + w, y + h, 0x66080B0A);
     }
 
     private int contrastText(int argb) {
         int r = (argb >> 16) & 255, g = (argb >> 8) & 255, b = argb & 255;
         double luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
         return luminance > 145 ? 0xFF101410 : 0xFFFFFFFF;
-    }
-
-    private void drawCoordinate(GuiGraphicsExtractor g, int x, int y, int w, String label, String value) {
-        rounded(g, x, y, x + w, y + 28, PANEL_ALT, 5);
-        WaypointUiText.draw(g, font, label, x + 7, y + 2, QUIET, false);
-        WaypointUiText.draw(g, font, fit(value, w - 14), x + 7, y + 15, TEXT, false);
     }
 
     private void drawFooter(GuiGraphicsExtractor g, int mx, int my) {
@@ -630,32 +519,6 @@ public final class WaypointScreen extends Screen {
         WaypointUiText.draw(g, font, "", contentX, height - 25, QUIET, false);
     }
 
-    private int countDimensions() {
-        boolean over = false, nether = false, end = false;
-        for (Waypoint w : entries) {
-            String d = WaypointsMod.normalizeDimension(w.dimension());
-            over |= d.equals("minecraft:overworld");
-            nether |= d.equals("minecraft:the_nether");
-            end |= d.equals("minecraft:the_end");
-        }
-        return (over ? 1 : 0) + (nether ? 1 : 0) + (end ? 1 : 0);
-    }
-    private String dimensionsText() {
-        List<String> names = new ArrayList<>();
-        for (Waypoint w : entries) {
-            String d = dimension(w.dimension());
-            if (!names.contains(d)) names.add(d);
-        }
-        return names.isEmpty() ? "No dimensions yet" : String.join(", ", names);
-    }
-    private String worldTitle() {
-        Minecraft mc = Minecraft.getInstance();
-        try {
-            if (mc.getCurrentServer() != null) return mc.getCurrentServer().name;
-            if (mc.getSingleplayerServer() != null) return mc.getSingleplayerServer().getWorldData().getLevelName();
-        } catch (Throwable ignored) { }
-        return "Current World";
-    }
     private String dimension(String raw) {
         String d = WaypointsMod.normalizeDimension(raw);
         if (d.endsWith(":the_nether")) return "The Nether";

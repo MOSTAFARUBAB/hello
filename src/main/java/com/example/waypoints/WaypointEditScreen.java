@@ -54,6 +54,7 @@ public class WaypointEditScreen extends Screen {
             0xFFE72C91, 0xFFFF8A00, 0xFFFFD21C, 0xFFFFFFFF, 0xFFFF3030};
     private static final int HUE_TEXTURE_HEIGHT = 32;
     private static final int HUE_TEXTURE_WIDTH = 1024;
+    private static final Identifier EDITOR_SCENE_TEXTURE = Identifier.fromNamespaceAndPath("simplewaypoints", "textures/gui/waypoint_preview.png");
     private static final Identifier HUE_TEXTURE_ID = Identifier.fromNamespaceAndPath(
             "simplewaypoints", "gui/waypoint_hue_strip");
     private static DynamicTexture hueTexture;
@@ -871,26 +872,13 @@ public class WaypointEditScreen extends Screen {
     }
 
     private void drawEditorScene(GuiGraphicsExtractor g, int x, int y, int w, int h, int marker) {
-        g.fill(x, y, x + w, y + h, 0xFF667FA0);
-        g.fill(x, y + h / 3, x + w, y + h, 0xFF31573A);
-        for (int i = 0; i < 8; i++) {
-            int tx = x + 6 + i * Math.max(1, (w - 18) / 8);
-            int th = 18 + (i % 3) * 7;
-            g.fill(tx + 5, y + h - th + 8, tx + 8, y + h - 3, 0xFF765239);
-            g.fill(tx, y + h - th, tx + 15, y + h - th + 15, i % 2 == 0 ? 0xFF39783C : 0xFF2E6837);
-            g.fill(tx + 2, y + h - th + 2, tx + 6, y + h - th + 6, 0xFF579B47);
-        }
+        g.blit(EDITOR_SCENE_TEXTURE, x, y, x + w, y + h, 0.0f, 1.0f, 0.0f, 1.0f);
         int cx = x + w / 2;
-        int houseY = y + h - 55;
-        g.fill(cx - 30, houseY + 22, cx + 32, y + h - 4, 0xFF8D765B);
-        g.fill(cx - 36, houseY + 8, cx + 37, houseY + 25, 0xFF514740);
-        g.fill(cx - 25, houseY, cx + 26, houseY + 10, 0xFF685547);
-        g.fill(cx - 7, houseY + 40, cx + 8, y + h - 4, 0xFF38271F);
-        g.fill(cx - 21, houseY + 30, cx - 12, houseY + 39, 0xFFFFD88B);
-        g.fill(cx + 13, houseY + 30, cx + 22, houseY + 39, 0xFFFFD88B);
-        g.fill(cx - 1, y + 4, cx + 2, y + h - 12, marker & 0x66FFFFFF);
-        rounded(g, cx - 23, y + 21, cx + 24, y + 45, 0xDD080B0A, 6);
-        WaypointUiText.draw(g, font, "H  " + (nameBox == null || nameBox.getValue().isBlank() ? "Home" : fitText(nameBox.getValue(), 12)), cx - 17, y + 29, marker | 0xFF000000, true);
+        // Keep the beacon and label responsive to the current chosen color.
+        g.fill(cx - 1, y + 5, cx + 2, y + h - 12, (marker & 0x00FFFFFF) | 0x88000000);
+        rounded(g, cx - 28, y + 18, cx + 29, y + 46, 0xDD080B0A, 7);
+        WaypointUiText.draw(g, font, "⌂  " + (nameBox == null || nameBox.getValue().isBlank() ? "Home" : fitText(nameBox.getValue(), 12)),
+                cx - 21, y + 27, (marker & 0x00FFFFFF) | 0xFF000000, true);
         border(g, x, y, x + w, y + h, CARD_BORDER);
     }
 
@@ -935,7 +923,7 @@ public class WaypointEditScreen extends Screen {
         g.fill(14, base - 25, 42, base - 7, 0xFF79502E);
         g.fill(14, base - 28, 42, base - 22, 0xFF4F9C35);
         g.fill(18, base - 26, 24, base - 24, 0xFF82C94B);
-        WaypointUiText.draw(g, font, "v1.4.5", 54, base - 3, WaypointsMod.uiAccentColor, true);
+        WaypointUiText.draw(g, font, "v1.4.6", 54, base - 3, WaypointsMod.uiAccentColor, true);
     }
 
     private void drawBrandMark(GuiGraphicsExtractor g, int x, int y) {

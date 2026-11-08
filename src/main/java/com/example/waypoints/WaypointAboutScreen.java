@@ -33,7 +33,7 @@ public final class WaypointAboutScreen extends Screen {
         rounded(g, x + 22, panelY + 24, x + 70, panelY + 72, WaypointsMod.uiAccentColor, 12);
         WaypointUiText.draw(g, font, "◆", x + 35, panelY + 39, 0xFF101410, true);
         WaypointUiText.drawTitle(g, font, "Simple Waypoints Manager", x + 88, panelY + 26, TEXT);
-        WaypointUiText.draw(g, font, "Version 1.4.5  ·  Minecraft 26.3", x + 88, panelY + 56, WaypointsMod.uiAccentColor, true);
+        WaypointUiText.draw(g, font, "Version 1.4.6  ·  Minecraft 26.3", x + 88, panelY + 56, WaypointsMod.uiAccentColor, true);
         WaypointUiText.draw(g, font, "Save locations, organize dimensions, and follow your own beacon markers.", x + 22, panelY + 100, TEXT, false);
         WaypointUiText.draw(g, font, "Your waypoint data is stored locally in your Minecraft configuration.", x + 22, panelY + 124, MUTED, false);
         WaypointUiText.draw(g, font, "Includes a custom dashboard, color picker, Chroma mode, map preview and settings.", x + 22, panelY + 148, MUTED, false);
@@ -59,7 +59,7 @@ public final class WaypointAboutScreen extends Screen {
         nav(g, mx, my, 247, "About", true);
         g.fill(14, height - 99, 42, height - 92, 0xFF4F9C35);
         g.fill(14, height - 92, 42, height - 79, 0xFF79502E);
-        WaypointUiText.draw(g, font, "v1.4.5", 54, height - 91, WaypointsMod.uiAccentColor, true);
+        WaypointUiText.draw(g, font, "v1.4.6", 54, height - 91, WaypointsMod.uiAccentColor, true);
     }
 
     private void drawBrandMark(GuiGraphicsExtractor g, int x, int y) {

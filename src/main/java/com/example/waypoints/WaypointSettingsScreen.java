@@ -7,7 +7,6 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
-import java.util.List;
 
 /** Preferences workspace matching the dark, lime-accented Waypoint Manager design. */
 public final class WaypointSettingsScreen extends Screen {
@@ -311,7 +310,7 @@ public final class WaypointSettingsScreen extends Screen {
             int base = height - 72;
             g.fill(14, base - 25, 42, base - 7, 0xFF79502E);
             g.fill(14, base - 28, 42, base - 22, 0xFF4F9C35);
-            WaypointUiText.draw(g, font, "v1.4.5", 54, base - 3, WaypointsMod.uiAccentColor, true);
+            WaypointUiText.draw(g, font, "v1.4.6", 54, base - 3, WaypointsMod.uiAccentColor, true);
         } else {
             nav(g, mx, my, 8, 112, 38, "", "", false);
             nav(g, mx, my, 8, 156, 38, "", "", false);
@@ -387,44 +386,11 @@ public final class WaypointSettingsScreen extends Screen {
         else drawInfoGlyph(g, x + 10, y + 10);
         if (!label.isEmpty()) WaypointUiText.draw(g, font, label, x + 30, y + 10, active ? 0xFF101410 : MUTED, active);
     }
-    private void settingRow(GuiGraphicsExtractor g, int mx, int x, int y, int w, String title, String desc, boolean enabled) {
-        WaypointUiText.draw(g, font, fit(title, w - 54), x, y, TEXT, false);
-        int textWidth = Math.max(70, w - 58);
-        var lines = font.split(WaypointUiText.component(desc), textWidth);
-        for (int i = 0; i < Math.min(2, lines.size()); i++) {
-            WaypointUiText.draw(g, font, lines.get(i), x, y + 13 + i * 12, MUTED, false);
-        }
-        int sx = x + w - 26;
-        toggle(g, sx, y + 1, enabled);
-    }
     private void toggle(GuiGraphicsExtractor g, int x, int y, boolean enabled) {
         rounded(g, x, y, x + 26, y + 15, enabled ? 0xFF45652A : 0xFF3B4247, 8);
         rounded(g, enabled ? x + 13 : x + 2, y + 2, enabled ? x + 24 : x + 13, y + 13, enabled ? WaypointsMod.uiAccentColor : 0xFF9BA4A8, 6);
     }
     private void card(GuiGraphicsExtractor g, int x, int y, int w, int h) { rounded(g, x, y, x + w, y + h, PANEL, 9); border(g, x, y, x + w, y + h, EDGE); }
-    private void drawPreview(GuiGraphicsExtractor g, int x, int y, int w, int h) {
-        Minecraft mc = Minecraft.getInstance();
-        List<Waypoint> saved = WaypointsMod.menuWaypoints();
-        String currentDimension = WaypointsMod.normalizeDimension(WaypointsMod.currentDimension());
-        Waypoint featured = saved.stream()
-                .filter(waypoint -> {
-                    String d = WaypointsMod.normalizeDimension(waypoint.dimension());
-                    return d.equals(currentDimension) || d.equals("all");
-                })
-                .findFirst()
-                .orElse(saved.isEmpty() ? null : saved.get(0));
-        int centerX = featured != null ? featured.x() : mc.player == null ? 0 : mc.player.blockPosition().getX();
-        int centerZ = featured != null ? featured.z() : mc.player == null ? 0 : mc.player.blockPosition().getZ();
-        int centerY = featured != null ? featured.y() : mc.player == null ? 64 : mc.player.blockPosition().getY();
-        int markerColor = featured != null ? 0xFF000000 | WaypointsMod.resolveColor(featured) : WaypointsMod.uiAccentColor;
-        String label = featured != null ? featured.name() : "Your position";
-        int distance = mc.player == null || featured == null ? 256 : (int)Math.round(Math.sqrt(
-                mc.player.distanceToSqr(centerX + 0.5, centerY + 0.5, centerZ + 0.5)));
-        String details = distance + "m";
-        SurfaceMapPreview.draw(g, font, x, y, w, h, centerX, centerZ,
-                featured != null ? featured.dimension() : WaypointsMod.currentDimension(),
-                markerColor, label, details);
-    }
     private void buttonLabel(GuiGraphicsExtractor g, int mx, int my, int x, int y, int w, int h, String label, boolean primary) {
         boolean hover = inside(mx, my, x, y, w, h);
         rounded(g, x, y, x + w, y + h, primary ? WaypointsMod.uiAccentColor : hover ? 0xFF242B2F : PANEL, 6);
@@ -432,13 +398,6 @@ public final class WaypointSettingsScreen extends Screen {
         WaypointUiText.draw(g, font, label, x + (w - WaypointUiText.width(font, label)) / 2, y + (h - WaypointUiText.LINE_HEIGHT) / 2, primary ? BG : TEXT, false);
     }
     private String fit(String value, int max) { String s = value; while (!s.isEmpty() && WaypointUiText.width(font, s) > max) s = s.substring(0, s.length() - 1); return s.equals(value) ? s : s + "..."; }
-    private String worldTitle() {
-        Minecraft mc = Minecraft.getInstance();
-        try { if (mc.getCurrentServer() != null) return mc.getCurrentServer().name;
-            if (mc.getSingleplayerServer() != null) return mc.getSingleplayerServer().getWorldData().getLevelName(); }
-        catch (Throwable ignored) { }
-        return "Current World";
-    }
     private static void border(GuiGraphicsExtractor g, int x, int y, int x2, int y2, int color) {
         g.fill(x, y, x2, y + 1, color); g.fill(x, y2 - 1, x2, y2, color); g.fill(x, y, x + 1, y2, color); g.fill(x2 - 1, y, x2, y2, color);
     }

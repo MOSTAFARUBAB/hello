@@ -992,7 +992,7 @@ public class WaypointEditScreen extends Screen {
         g.fill(14, base - 25, 42, base - 7, 0xFF79502E);
         g.fill(14, base - 28, 42, base - 22, 0xFF4F9C35);
         g.fill(18, base - 26, 24, base - 24, 0xFF82C94B);
-        WaypointUiText.draw(g, font, "v1.4.2", 54, base - 3, ACCENT, true);
+        WaypointUiText.draw(g, font, "v1.4.3", 54, base - 3, ACCENT, true);
     }
 
     private void drawBrandMark(GuiGraphicsExtractor g, int x, int y) {

@@ -126,7 +126,7 @@ public final class WaypointMapScreen extends Screen {
         nav(g, mx, my, 10, 247, "About", false);
         g.fill(14, height - 96, 42, height - 77, 0xFF79502E);
         g.fill(14, height - 99, 42, height - 92, 0xFF4F9C35);
-        WaypointUiText.draw(g, font, "v1.4.2", 54, height - 91, ACCENT, true);
+        WaypointUiText.draw(g, font, "v1.4.3", 54, height - 91, ACCENT, true);
     }
 
     private void nav(GuiGraphicsExtractor g, int mx, int my, int x, int y, String label, boolean active) {

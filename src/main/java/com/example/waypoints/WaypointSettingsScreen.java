@@ -329,13 +329,22 @@ public final class WaypointSettingsScreen extends Screen {
             int base = height - 72;
             g.fill(14, base - 25, 42, base - 7, 0xFF79502E);
             g.fill(14, base - 28, 42, base - 22, 0xFF4F9C35);
-            WaypointUiText.draw(g, font, "v1.4.2", 54, base - 3, ACCENT, true);
+            WaypointUiText.draw(g, font, "v1.4.3", 54, base - 3, ACCENT, true);
         } else {
             nav(g, mx, my, 8, 112, 38, "", "", false);
             nav(g, mx, my, 8, 156, 38, "", "", false);
             nav(g, mx, my, 8, 200, 38, "", "", true);
             nav(g, mx, my, 8, 244, 38, "", "", false);
         }
+    }
+
+    private void drawPinGlyph(GuiGraphicsExtractor g, int x, int y, int color) {
+        // Compact waypoint pin glyph used by the sidebar navigation.
+        g.fill(x + 4, y, x + 8, y + 2, color);
+        g.fill(x + 2, y + 2, x + 10, y + 6, color);
+        g.fill(x + 3, y + 6, x + 9, y + 9, color);
+        g.fill(x + 5, y + 9, x + 7, y + 12, color);
+        g.fill(x + 4, y + 3, x + 8, y + 6, RAIL);
     }
 
     private void drawBrandMark(GuiGraphicsExtractor g, int x, int y) {

@@ -5,23 +5,19 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.FontDescription;
-import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 
 /** Shared smooth sans-serif text renderer for all Waypoint Manager screens. */
 final class WaypointUiText {
-    private static final Identifier FONT_ID = Identifier.fromNamespaceAndPath("simplewaypoints", "ui");
-    private static final Identifier BOLD_FONT_ID = Identifier.fromNamespaceAndPath("simplewaypoints", "ui_bold");
-    private static final Identifier SMALL_FONT_ID = Identifier.fromNamespaceAndPath("simplewaypoints", "ui_small");
     private static final int TEXT = 0xFFF2F4F5;
-    static final int LINE_HEIGHT = 13;
+    static final int LINE_HEIGHT = 10;
 
     private WaypointUiText() {}
 
     static MutableComponent component(String text) {
-        return Component.literal(text == null ? "" : text)
-                .withStyle(style -> style.withFont(new FontDescription.Resource(FONT_ID)));
+        // Use Minecraft's native UI font. The previous custom bitmap atlas had
+        // incorrect glyph advances and made labels look widely spaced/blocky.
+        return Component.literal(text == null ? "" : text);
     }
 
     static int width(Font font, String text) {
@@ -41,13 +37,11 @@ final class WaypointUiText {
     }
 
     private static MutableComponent smallComponent(String text) {
-        return Component.literal(text == null ? "" : text)
-                .withStyle(style -> style.withFont(new FontDescription.Resource(SMALL_FONT_ID)));
+        return Component.literal(text == null ? "" : text);
     }
 
     private static MutableComponent boldComponent(String text) {
-        return Component.literal(text == null ? "" : text)
-                .withStyle(style -> style.withFont(new FontDescription.Resource(BOLD_FONT_ID)));
+        return Component.literal(text == null ? "" : text).withStyle(style -> style.withBold(true));
     }
 
     static void drawCompact(GuiGraphicsExtractor g, Font font, String text, int x, int y, int color) {
@@ -62,7 +56,7 @@ final class WaypointUiText {
         Component c = boldComponent(text);
         g.pose().pushMatrix();
         g.pose().translate(x, y);
-        g.pose().scale(2.0f, 2.0f);
+        g.pose().scale(1.35f, 1.35f);
         g.text(font, c, 0, 0, color, false);
         g.pose().popMatrix();
     }
@@ -84,7 +78,7 @@ final class WaypointUiText {
         draw(g, font, shown, x, y, TEXT, false);
         if (box.isFocused() && ((System.currentTimeMillis() / 500L) & 1L) == 0L) {
             int caretX = x + width(font, shown.substring(0, Math.min(shownCursor, shown.length())));
-            g.fill(caretX, y - 1, caretX + 1, y + 13, TEXT);
+            g.fill(caretX, y - 1, caretX + 1, y + 10, TEXT);
         }
     }
 }

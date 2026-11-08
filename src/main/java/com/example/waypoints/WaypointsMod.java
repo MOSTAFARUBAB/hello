@@ -82,6 +82,7 @@ public class WaypointsMod implements ClientModInitializer {
     public static volatile boolean matchWaypointColor = true;
     public static volatile boolean currentDimensionOnly = true;
     public static volatile boolean hideHudWhenMenuOpen = true;
+    public static volatile boolean smoothUiEdges = true;
     /** 0 = unlimited; otherwise maximum world blocks from the player. */
     public static volatile int maxDisplayDistance = 0;
     /** 0-100; applied as beam color intensity on the vanilla beam renderer. */
@@ -750,6 +751,7 @@ public class WaypointsMod implements ClientModInitializer {
             matchWaypointColor = Boolean.parseBoolean(p.getProperty("matchWaypointColor", "true"));
             currentDimensionOnly = Boolean.parseBoolean(p.getProperty("currentDimensionOnly", "true"));
             hideHudWhenMenuOpen = Boolean.parseBoolean(p.getProperty("hideHudWhenMenuOpen", "true"));
+            smoothUiEdges = Boolean.parseBoolean(p.getProperty("smoothUiEdges", "true"));
             markerSizeMode = Math.max(0, Math.min(2, Integer.parseInt(p.getProperty("labelSize", "1"))));
             beamOpacity = Math.max(0, Math.min(100, Integer.parseInt(p.getProperty("beamOpacity", "75"))));
             maxDisplayDistance = Math.max(0, Integer.parseInt(p.getProperty("maxDisplayDistance", "0")));
@@ -767,6 +769,7 @@ public class WaypointsMod implements ClientModInitializer {
         p.setProperty("matchWaypointColor", Boolean.toString(matchWaypointColor));
         p.setProperty("currentDimensionOnly", Boolean.toString(currentDimensionOnly));
         p.setProperty("hideHudWhenMenuOpen", Boolean.toString(hideHudWhenMenuOpen));
+        p.setProperty("smoothUiEdges", Boolean.toString(smoothUiEdges));
         p.setProperty("labelSize", Integer.toString(markerSizeMode));
         p.setProperty("beamOpacity", Integer.toString(beamOpacity));
         p.setProperty("maxDisplayDistance", Integer.toString(maxDisplayDistance));

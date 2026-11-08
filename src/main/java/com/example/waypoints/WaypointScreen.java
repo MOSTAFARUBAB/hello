@@ -93,6 +93,15 @@ public final class WaypointScreen extends Screen {
         entries = new ArrayList<>(WaypointsMod.menuWaypoints());
         if (sortByName) entries.sort((a, b) -> a.name().compareToIgnoreCase(b.name()));
         refreshFiltered();
+        // Avoid leaving most of the dashboard empty when only one or two
+        // waypoints exist: let the visible cards use the available width.
+        int preferredColumns = listLayout ? 1 : contentWidth >= 900 ? 3 : contentWidth >= 520 ? 2 : 1;
+        columns = Math.max(1, Math.min(preferredColumns, Math.max(1, filtered.size())));
+        rows = Math.max(1, Math.min(2, (footerY - gridY - 12) / 150));
+        if (filtered.size() <= columns) rows = 1;
+        cardWidth = (contentWidth - (columns - 1) * 12) / columns;
+        cardHeight = Math.max(176, (footerY - gridY - 12 * (rows - 1) - 12) / rows);
+        pageSize = columns * rows;
         page = Math.max(0, Math.min(requestedPage, Math.max(0, (filtered.size() - 1) / pageSize)));
 
         // Sidebar navigation mirrors the four sections in the neon reference design.
@@ -326,7 +335,7 @@ public final class WaypointScreen extends Screen {
             navItem(g, mx, my, navX, 247, navW, "", "About", false);
             int base = height - 72;
             drawGrassBlock(g, 14, base - 27);
-            WaypointUiText.draw(g, font, "v1.4.3", 54, base - 3, ACCENT, true);
+            WaypointUiText.draw(g, font, "v1.4.4", 54, base - 3, ACCENT, true);
         } else {
             navItem(g, mx, my, 8, 112, 38, "", "", true);
             navItem(g, mx, my, 8, 156, 38, "", "", false);
@@ -621,13 +630,13 @@ public final class WaypointScreen extends Screen {
     }
     private void pill(GuiGraphicsExtractor g, int x, int y, int w, int h, String label, boolean selected, int mx, int my) {
         boolean hover = inside(mx, my, x, y, w, h);
-        rounded(g, x, y, x + w, y + h, selected ? 0xFF26321F : hover ? PANEL : PANEL_ALT, 6);
+        rounded(g, x, y, x + w, y + h, selected ? 0xFF26321F : hover ? PANEL : PANEL_ALT, 8);
         if (selected) border(g, x, y, x + w, y + h, 0xFF789D4C);
         WaypointUiText.draw(g, font, label, x + (w - WaypointUiText.width(font, label)) / 2, y + (h - WaypointUiText.LINE_HEIGHT) / 2, selected ? ACCENT : MUTED, selected);
     }
     private void actionButton(GuiGraphicsExtractor g, int mx, int my, int x, int y, int w, int h, String label, boolean primary) {
         boolean hover = inside(mx, my, x, y, w, h);
-        rounded(g, x, y, x + w, y + h, primary ? (hover ? 0xFFBDE39A : ACCENT) : (hover ? 0xFF242B2F : PANEL), 6);
+        rounded(g, x, y, x + w, y + h, primary ? (hover ? 0xFFBDE39A : ACCENT) : (hover ? 0xFF242B2F : PANEL), 8);
         if (!primary) border(g, x, y, x + w, y + h, EDGE);
         int color = primary ? 0xFF12170C : TEXT;
         WaypointUiText.draw(g, font, label, x + (w - WaypointUiText.width(font, label)) / 2, y + (h - WaypointUiText.LINE_HEIGHT) / 2, color, false);
@@ -641,7 +650,7 @@ public final class WaypointScreen extends Screen {
     }
     private static void rounded(GuiGraphicsExtractor g, int x, int y, int x2, int y2, int color, int radius) {
         int w = x2 - x, h = y2 - y; if (w <= 0 || h <= 0) return;
-        int r = Math.min(radius, Math.min(w / 2, h / 2));
+        int r = Math.min(WaypointsMod.smoothUiEdges ? Math.max(radius, 8) : Math.min(radius, 3), Math.min(w / 2, h / 2));
         g.fill(x + r, y, x2 - r, y2, color); g.fill(x, y + r, x2, y2 - r, color);
         for (int row = 0; row < r; row++) {
             int inset = (int) Math.ceil(r - Math.sqrt(Math.max(0, r * r - Math.pow(r - row - .5, 2))));

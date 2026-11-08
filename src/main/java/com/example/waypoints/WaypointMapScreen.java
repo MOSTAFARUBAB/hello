@@ -126,7 +126,7 @@ public final class WaypointMapScreen extends Screen {
         nav(g, mx, my, 10, 247, "About", false);
         g.fill(14, height - 96, 42, height - 77, 0xFF79502E);
         g.fill(14, height - 99, 42, height - 92, 0xFF4F9C35);
-        WaypointUiText.draw(g, font, "v1.4.3", 54, height - 91, ACCENT, true);
+        WaypointUiText.draw(g, font, "v1.4.4", 54, height - 91, ACCENT, true);
     }
 
     private void nav(GuiGraphicsExtractor g, int mx, int my, int x, int y, String label, boolean active) {
@@ -166,7 +166,7 @@ public final class WaypointMapScreen extends Screen {
         g.fill(x, y, x + 1, y2, color); g.fill(x2 - 1, y, x2, y2, color);
     }
     private static void rounded(GuiGraphicsExtractor g, int x, int y, int x2, int y2, int color, int radius) {
-        int w=x2-x, h=y2-y; if(w<=0||h<=0)return; int r=Math.min(radius,Math.min(w/2,h/2));
+        int w=x2-x, h=y2-y; if(w<=0||h<=0)return; int r=Math.min(WaypointsMod.smoothUiEdges?Math.max(radius,8):Math.min(radius,3),Math.min(w/2,h/2));
         g.fill(x+r,y,x2-r,y2,color); g.fill(x,y+r,x2,y2-r,color);
         for(int row=0;row<r;row++){int inset=(int)Math.ceil(r-Math.sqrt(Math.max(0,r*r-Math.pow(r-row-.5,2))));g.fill(x+inset,y+row,x2-inset,y+row+1,color);g.fill(x+inset,y2-row-1,x2-inset,y2-row,color);}
     }

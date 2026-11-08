@@ -81,7 +81,7 @@ final class SurfaceMapPreview {
     }
     private static void rounded(GuiGraphicsExtractor g, int x, int y, int x2, int y2, int color, int radius) {
         int w = x2 - x, h = y2 - y; if (w <= 0 || h <= 0) return;
-        int r = Math.min(radius, Math.min(w / 2, h / 2));
+        int r = Math.min(WaypointsMod.smoothUiEdges ? Math.max(radius, 8) : Math.min(radius, 3), Math.min(w / 2, h / 2));
         g.fill(x + r, y, x2 - r, y2, color); g.fill(x, y + r, x2, y2 - r, color);
         for (int row = 0; row < r; row++) {
             int inset = (int)Math.ceil(r - Math.sqrt(Math.max(0.0, r * r - Math.pow(r - row - 0.5, 2))));

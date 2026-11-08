@@ -1,4 +1,4 @@
-# Simple Waypoints Manager 1.4.3 — Neon Interface Redesign
+# Simple Waypoints Manager 1.4.4 — Neon Interface Redesign
 
 A client-side Fabric waypoint manager for Minecraft 26.3 with a redesigned dark interface, neon-green accents, a waypoint-card dashboard, a waypoint editor with color presets and Chroma mode, a surface-map preview, and settings.
 
@@ -71,7 +71,7 @@ Build requirements: Java 25 and Gradle (Fabric Loom downloads the required Minec
 - Uses the Minecraft 26.3 chat listener overlay path for navigation notices instead of removed player message methods.
 
 
-## Version 1.4.3 neon interface redesign
+## Version 1.4.4 neon interface redesign
 
 - Replaced the dashboard workspace-summary layout with a waypoint-first card grid, dimension filters, search, waypoint thumbnails, and Import / Export actions.
 - Shared four-item sidebar navigation across Waypoints, Map, Settings, and About.
@@ -82,11 +82,19 @@ Build requirements: Java 25 and Gradle (Fabric Loom downloads the required Minec
 - Build uses Gradle 9.8.0 and Java 25.
 
 
-## Version 1.4.3 build notes
+## Version 1.4.4 build notes
 
 The Minecraft game version is **26.3**. Fabric Loom has its own independent version number (configured here as **1.17.21**); it is not set to 26.3. The GitHub Actions workflow uses Gradle 9.8.0 and Java 25.
 
 
-## Version 1.4.3 build fix
+## Version 1.4.4 build fix
 
 Added the missing `drawPinGlyph` helper to `WaypointSettingsScreen`, fixing the `cannot find symbol: drawPinGlyph` Java compilation error reported when building version 1.4.2. No gameplay behavior or settings logic was changed by this patch.
+
+## Version 1.4.4 UI polish
+
+- Replaced the custom bitmap UI font with Minecraft's native UI font to fix broken glyph spacing and blocky labels.
+- Reduced oversized heading scaling and tightened text metrics for more consistent labels.
+- Dashboard cards now expand to use the available width when only one or two waypoints are visible.
+- Added a persistent **Smooth UI Edges** toggle under Settings → Appearance; enabled mode uses larger rounded corners throughout the custom screens.
+- Standardized rounded button and panel styling across dashboard, editor, map, settings, and about screens.

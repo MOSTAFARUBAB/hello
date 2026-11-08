@@ -992,7 +992,7 @@ public class WaypointEditScreen extends Screen {
         g.fill(14, base - 25, 42, base - 7, 0xFF79502E);
         g.fill(14, base - 28, 42, base - 22, 0xFF4F9C35);
         g.fill(18, base - 26, 24, base - 24, 0xFF82C94B);
-        WaypointUiText.draw(g, font, "v1.4.3", 54, base - 3, ACCENT, true);
+        WaypointUiText.draw(g, font, "v1.4.4", 54, base - 3, ACCENT, true);
     }
 
     private void drawBrandMark(GuiGraphicsExtractor g, int x, int y) {
@@ -1114,7 +1114,7 @@ public class WaypointEditScreen extends Screen {
         int w = x2 - x;
         int h = y2 - y;
         if (w <= 0 || h <= 0) return;
-        int r = Math.min(radius, Math.min(w / 2, h / 2));
+        int r = Math.min(WaypointsMod.smoothUiEdges ? Math.max(radius, 8) : Math.min(radius, 3), Math.min(w / 2, h / 2));
         g.fill(x + r, y, x2 - r, y2, color);
         g.fill(x, y + r, x2, y2 - r, color);
         for (int row = 0; row < r; row++) {

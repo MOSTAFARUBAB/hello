@@ -109,12 +109,16 @@ public final class WaypointSettingsScreen extends Screen {
 
         // Appearance card: dimension filtering, HUD visibility and distance cap.
         int appearanceToggleX = contentX + leftW - 42;
-        scrollButton(appearanceToggleX, displayY + 49, 28, 18, () -> {
+        scrollButton(appearanceToggleX, displayY + 43, 28, 18, () -> {
             WaypointsMod.currentDimensionOnly = !WaypointsMod.currentDimensionOnly;
             save();
         });
-        scrollButton(appearanceToggleX, displayY + 77, 28, 18, () -> {
+        scrollButton(appearanceToggleX, displayY + 66, 28, 18, () -> {
             WaypointsMod.hideHudWhenMenuOpen = !WaypointsMod.hideHudWhenMenuOpen;
+            save();
+        });
+        scrollButton(appearanceToggleX, displayY + 89, 28, 18, () -> {
+            WaypointsMod.smoothUiEdges = !WaypointsMod.smoothUiEdges;
             save();
         });
         distanceBox = new EditBox(font, contentX + leftW - 102, displayY + 113, 84, 20,
@@ -238,6 +242,7 @@ public final class WaypointSettingsScreen extends Screen {
         WaypointsMod.beamOpacity = 75;
         WaypointsMod.currentDimensionOnly = true;
         WaypointsMod.hideHudWhenMenuOpen = true;
+        WaypointsMod.smoothUiEdges = true;
         WaypointsMod.maxDisplayDistance = 0;
         save();
         Minecraft.getInstance().gui.setScreen(new WaypointSettingsScreen());
@@ -287,8 +292,9 @@ public final class WaypointSettingsScreen extends Screen {
         // Appearance — bottom-left panel.
         card(g, contentX, displayY, leftW, displayCardHeight);
         WaypointUiText.draw(g, font, "Appearance", contentX + 16, displayY + 16, ACCENT, true);
-        compactSetting(g, mx, contentX + 16, displayY + 49, leftW - 32, "Current Dimension Only", WaypointsMod.currentDimensionOnly);
-        compactSetting(g, mx, contentX + 16, displayY + 77, leftW - 32, "Hide HUD In Menus", WaypointsMod.hideHudWhenMenuOpen);
+        compactSetting(g, mx, contentX + 16, displayY + 43, leftW - 32, "Current Dimension Only", WaypointsMod.currentDimensionOnly);
+        compactSetting(g, mx, contentX + 16, displayY + 66, leftW - 32, "Hide HUD In Menus", WaypointsMod.hideHudWhenMenuOpen);
+        compactSetting(g, mx, contentX + 16, displayY + 89, leftW - 32, "Smooth UI Edges", WaypointsMod.smoothUiEdges);
         WaypointUiText.draw(g, font, "Max Distance", contentX + 16, displayY + 115, MUTED, false);
         rounded(g, contentX + leftW - 108, displayY + 108, contentX + leftW - 16, displayY + 134, PANEL_ALT, 5);
         border(g, contentX + leftW - 108, displayY + 108, contentX + leftW - 16, displayY + 134, EDGE);
@@ -329,7 +335,7 @@ public final class WaypointSettingsScreen extends Screen {
             int base = height - 72;
             g.fill(14, base - 25, 42, base - 7, 0xFF79502E);
             g.fill(14, base - 28, 42, base - 22, 0xFF4F9C35);
-            WaypointUiText.draw(g, font, "v1.4.3", 54, base - 3, ACCENT, true);
+            WaypointUiText.draw(g, font, "v1.4.4", 54, base - 3, ACCENT, true);
         } else {
             nav(g, mx, my, 8, 112, 38, "", "", false);
             nav(g, mx, my, 8, 156, 38, "", "", false);
@@ -460,7 +466,7 @@ public final class WaypointSettingsScreen extends Screen {
         g.fill(x, y, x2, y + 1, color); g.fill(x, y2 - 1, x2, y2, color); g.fill(x, y, x + 1, y2, color); g.fill(x2 - 1, y, x2, y2, color);
     }
     private static void rounded(GuiGraphicsExtractor g, int x, int y, int x2, int y2, int color, int radius) {
-        int w = x2 - x, h = y2 - y; if (w <= 0 || h <= 0) return; int r = Math.min(radius, Math.min(w / 2, h / 2));
+        int w = x2 - x, h = y2 - y; if (w <= 0 || h <= 0) return; int r = Math.min(WaypointsMod.smoothUiEdges ? Math.max(radius, 8) : Math.min(radius, 3), Math.min(w / 2, h / 2));
         g.fill(x + r, y, x2 - r, y2, color); g.fill(x, y + r, x2, y2 - r, color);
         for (int row = 0; row < r; row++) { int inset = (int) Math.ceil(r - Math.sqrt(Math.max(0, r * r - Math.pow(r - row - .5, 2))));
             g.fill(x + inset, y + row, x2 - inset, y + row + 1, color); g.fill(x + inset, y2 - row - 1, x2 - inset, y2 - row, color); }

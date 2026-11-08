@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "simplewaypoints",
+  "version": "${version}",
+  "name": "Simple Waypoints",
+  "description": "Neon waypoint dashboard, waypoint editor with HSV color picker and Chroma mode, waypoint map overview, settings, labels, and beacon beams.",
+  "authors": [
+    "You"
+  ],
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.example.waypoints.WaypointsMod"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "26.3",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}
